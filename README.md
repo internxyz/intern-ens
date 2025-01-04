@@ -1,6 +1,6 @@
-# DOT UI Kit
+# ETH UI Kit
 
-This is an opinionated UI scaffolding kit for the Polkadot ecosystem (starting with Asset Hub). The technical stack is:
+This is an opinionated UI scaffolding kit for the Ethereum/EVM ecosystem. The technical stack is:
 - [Next.js](https://nextjs.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Lucide icons](https://lucide.dev/)
@@ -17,8 +17,8 @@ This is an opinionated UI scaffolding kit for the Polkadot ecosystem (starting w
 ## Getting started
 
 ```
-git clone https://github.com/buildstationorg/dotui.git
-cd dotui
+git clone https://github.com/buildstationorg/ethui.git
+cd ethui
 npm install
 ```
 
