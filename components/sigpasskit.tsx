@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react";
 import '@rainbow-me/rainbowkit/styles.css';
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, KeyRound, Ban, ExternalLink, LogOut, ChevronDown, X } from 'lucide-react';
-import { formatEther, Address } from 'viem';
+import { Address } from 'viem';
 import { createSigpassWallet, getSigpassWallet, checkSigpassWallet, checkBrowserWebAuthnSupport } from "@/lib/sigpass";
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useBalance, createConfig, http, useConfig } from 'wagmi';
+import { useAccount } from 'wagmi';
 import {
   Dialog,
   DialogContent,
@@ -32,20 +31,12 @@ import {
 import Image from 'next/image';
 import { useAtom } from 'jotai';
 import { atomWithStorage, RESET } from 'jotai/utils';
-import { westendAssetHub } from '@/app/providers';
 
 
 // Set the string key and the initial value
 export const addressAtom = atomWithStorage<Address | undefined>('SIGPASS_ADDRESS', undefined)
 
-// create a local config for the wallet
-const localConfig = createConfig({
-  chains: [westendAssetHub],
-  transports: {
-    [westendAssetHub.id]: http(),
-  },
-  ssr: true,
-});
+
 
 export default function SigpassKit() {
   const [wallet, setWallet] = useState<boolean>(false);
@@ -55,12 +46,6 @@ export default function SigpassKit() {
   const account = useAccount();
   const [address, setAddress] = useAtom(addressAtom);
   const [isCopied, setIsCopied] = useState(false);
-  const config = useConfig();
-  const { data: balance } = useBalance({
-    address: address,
-    chainId: westendAssetHub.id,
-    config: address ? localConfig : config,
-  });
 
   // check if the wallet is already created
   useEffect(() => {
@@ -215,9 +200,6 @@ export default function SigpassKit() {
               <DialogDescription className="flex flex-col gap-2 text-primary text-center font-bold text-lg items-center">
                 {truncateAddress(address, 4)}
               </DialogDescription>
-              <div className="flex flex-col items-center text-sm text-muted-foreground">
-                {balance ? `${formatEther(balance.value)} WND` : <Skeleton className="w-[80px] h-[24px] rounded-md" />}
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <Button onClick={copyAddress} className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
                   {isCopied ? (
@@ -348,9 +330,6 @@ export default function SigpassKit() {
               </DrawerDescription>
             </DrawerHeader>
             <div className="flex flex-col items-center gap-2">
-              <div className="flex flex-col items-center text-sm text-muted-foreground mb-4">
-                {balance ? `${formatEther(balance.value)} WND` : <Skeleton className="w-[80px] h-[24px] rounded-md" />}
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <Button onClick={copyAddress} className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
                   {isCopied ? (
