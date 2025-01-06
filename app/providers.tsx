@@ -11,9 +11,13 @@ import {
   ledgerWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import {
+  mainnet,
   sepolia,
+  base,
   baseSepolia,
+  arbitrum,
   arbitrumSepolia,
+  optimism,
   optimismSepolia
 } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -23,15 +27,23 @@ import { Provider as JotaiProvider } from 'jotai';
 
 export const localConfig = createConfig({
   chains: [
+    mainnet,
     sepolia,
+    base,
     baseSepolia,
+    arbitrum,
     arbitrumSepolia,
+    optimism,
     optimismSepolia
   ],
   transports: {
+    [mainnet.id]: http(),
     [sepolia.id]: http(),
+    [base.id]: http(),
     [baseSepolia.id]: http(),
+    [arbitrum.id]: http(),
     [arbitrumSepolia.id]: http(),
+    [optimism.id]: http(),
     [optimismSepolia.id]: http(),
   },
   ssr: true,
@@ -51,15 +63,23 @@ const config = getDefaultConfig({
     },
   ],
   chains: [
+    mainnet,
     sepolia,
+    base,
     baseSepolia,
+    arbitrum,
     arbitrumSepolia,
+    optimism,
     optimismSepolia
   ],
   transports: {
+    [mainnet.id]: http(),
     [sepolia.id]: http(),
+    [base.id]: http(),
     [baseSepolia.id]: http(),
+    [arbitrum.id]: http(),
     [arbitrumSepolia.id]: http(),
+    [optimism.id]: http(),
     [optimismSepolia.id]: http(),
   },
   ssr: true, // Because it is Nextjs's App router, you need to declare ssr as true
