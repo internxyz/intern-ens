@@ -55,7 +55,6 @@ import {
 import { truncateHash } from "@/lib/utils";
 import CopyButton from "@/components/copy-button";
 import { getSigpassWallet } from "@/lib/sigpass";
-import { westendAssetHub } from "@/app/providers";
 import { useAtomValue } from 'jotai';
 import { addressAtom } from '@/components/sigpasskit';
 import { localConfig } from '@/app/providers';
@@ -124,7 +123,6 @@ export default function SendTransaction() {
         account: await getSigpassWallet(),
         to: values.address as Address,
         value: parseEther(values.amount),
-        chainId: westendAssetHub.id,
       });
     } else {
       // Fallback to connected wallet
