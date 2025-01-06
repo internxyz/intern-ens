@@ -18,7 +18,9 @@ import {
   arbitrum,
   arbitrumSepolia,
   optimism,
-  optimismSepolia
+  optimismSepolia,
+  kaia,
+  kairos
 } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider, http, createConfig } from 'wagmi';
@@ -34,7 +36,9 @@ export const localConfig = createConfig({
     arbitrum,
     arbitrumSepolia,
     optimism,
-    optimismSepolia
+    optimismSepolia,
+    kaia,
+    kairos
   ],
   transports: {
     [mainnet.id]: http(),
@@ -45,6 +49,8 @@ export const localConfig = createConfig({
     [arbitrumSepolia.id]: http(),
     [optimism.id]: http(),
     [optimismSepolia.id]: http(),
+    [kaia.id]: http(),
+    [kairos.id]: http(),
   },
   ssr: true,
 });
@@ -70,7 +76,9 @@ const config = getDefaultConfig({
     arbitrum,
     arbitrumSepolia,
     optimism,
-    optimismSepolia
+    optimismSepolia,
+    kaia,
+    kairos
   ],
   transports: {
     [mainnet.id]: http(),
@@ -81,6 +89,8 @@ const config = getDefaultConfig({
     [arbitrumSepolia.id]: http(),
     [optimism.id]: http(),
     [optimismSepolia.id]: http(),
+    [kaia.id]: http(),
+    [kairos.id]: http(),
   },
   ssr: true, // Because it is Nextjs's App router, you need to declare ssr as true
 });
