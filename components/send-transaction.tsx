@@ -2,20 +2,13 @@
 
 import { useState, useEffect } from "react";
 import {
-  type BaseError,
   useSendTransaction,
   useWaitForTransactionReceipt,
   useConfig
 } from "wagmi";
 import { parseEther, isAddress, Address } from "viem";
 import {
-  Ban,
-  ExternalLink,
-  ChevronDown,
-  X,
-  Hash,
   LoaderCircle,
-  CircleCheck,
 } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,32 +25,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import { truncateHash } from "@/lib/utils";
-import CopyButton from "@/components/copy-button";
 import { getSigpassWallet } from "@/lib/sigpass";
 import { useAtomValue } from 'jotai';
 import { addressAtom } from '@/components/sigpasskit';
 import { localConfig } from '@/app/providers';
+import { TransactionStatus } from "@/components/transaction-status";
 
 // form schema for sending transaction
 const formSchema = z.object({
@@ -208,137 +180,16 @@ export default function SendTransaction() {
           }
         </form>
       </Form>
-      {
-        // Desktop would be using dialog
-        isDesktop ? (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full">
-                Transaction status <ChevronDown />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Transaction status</DialogTitle>
-              </DialogHeader>
-              <DialogDescription>
-                Follow the transaction status below.
-              </DialogDescription>
-              <div className="flex flex-col gap-2">
-                {hash ? (
-                  <div className="flex flex-row gap-2 items-center">
-                    <Hash className="w-4 h-4" />
-                    Transaction Hash
-                    <a className="flex flex-row gap-2 items-center underline underline-offset-4" href={`${config.chains?.[0]?.blockExplorers?.default?.url}/tx/${hash}`} target="_blank" rel="noopener noreferrer">
-                      {truncateHash(hash)}
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                    <CopyButton copyText={hash} />
-                  </div>
-                ) : (
-                  <div className="flex flex-row gap-2 items-center">
-                    <Hash className="w-4 h-4" />
-                    No transaction hash
-                  </div>
-                )}
-                {
-                  !isPending && !isConfirmed && !isConfirming && (
-                    <div className="flex flex-row gap-2 items-center">
-                      <Ban className="w-4 h-4" /> No transaction submitted
-                    </div>
-                  )
-                }
-                {isConfirming && (
-                  <div className="flex flex-row gap-2 items-center text-yellow-500">
-                    <LoaderCircle className="w-4 h-4 animate-spin" /> Waiting
-                    for confirmation...
-                  </div>
-                )}
-                {isConfirmed && (
-                  <div className="flex flex-row gap-2 items-center text-green-500">
-                    <CircleCheck className="w-4 h-4" /> Transaction confirmed!
-                  </div>
-                )}
-                {error && (
-                  <div className="flex flex-row gap-2 items-center text-red-500">
-                    <X className="w-4 h-4" /> Error:{" "}
-                    {(error as BaseError).shortMessage || error.message}
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Close</Button>
-                </DialogClose>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        ) : (
-          // Mobile would be using drawer
-          <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerTrigger asChild>
-              <Button variant="outline" className="w-full">
-                Transaction status <ChevronDown />
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle>Transaction status</DrawerTitle>
-                <DrawerDescription>
-                  Follow the transaction status below.
-                </DrawerDescription>
-              </DrawerHeader>
-              <div className="flex flex-col gap-2 p-4">
-                {hash ? (
-                  <div className="flex flex-row gap-2 items-center">
-                    <Hash className="w-4 h-4" />
-                    Transaction Hash
-                    <a className="flex flex-row gap-2 items-center underline underline-offset-4" href={`${config.chains?.[0]?.blockExplorers?.default?.url}/tx/${hash}`} target="_blank" rel="noopener noreferrer">
-                      {truncateHash(hash)}
-                      <ExternalLink className="w-4 h-4" />
-                      <CopyButton copyText={hash} />
-                    </a>
-                  </div>
-                ) : (
-                  <div className="flex flex-row gap-2 items-center">
-                    <Hash className="w-4 h-4" />
-                    No transaction hash
-                  </div>
-                )}
-                {
-                  !isPending && !isConfirmed && !isConfirming && (
-                    <div className="flex flex-row gap-2 items-center">
-                      <Ban className="w-4 h-4" /> No transaction submitted
-                    </div>
-                  )
-                }
-                {isConfirming && (
-                  <div className="flex flex-row gap-2 items-center text-yellow-500">
-                    <LoaderCircle className="w-4 h-4 animate-spin" /> Waiting
-                    for confirmation...
-                  </div>
-                )}
-                {isConfirmed && (
-                  <div className="flex flex-row gap-2 items-center text-green-500">
-                    <CircleCheck className="w-4 h-4" /> Transaction confirmed!
-                  </div>
-                )}
-                {error && (
-                  <div className="flex flex-row gap-2 items-center text-red-500">
-                    <X className="w-4 h-4" /> Error:{" "}
-                    {(error as BaseError).shortMessage || error.message}
-                  </div>
-                )}
-              </div>
-              <DrawerFooter>
-                <DrawerClose asChild>
-                  <Button variant="outline">Close</Button>
-                </DrawerClose>
-              </DrawerFooter>
-            </DrawerContent>
-          </Drawer>
-        )
-      }
+      <TransactionStatus
+        hash={hash}
+        isPending={isPending}
+        isConfirming={isConfirming}
+        isConfirmed={isConfirmed}
+        error={error}
+        config={config}
+        open={open}
+        onOpenChange={setOpen}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button";
-import { Settings, ChevronDown } from "lucide-react"
+import { Settings, ChevronDown, RefreshCcw } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export default function CryptoSwap() {
@@ -23,7 +23,10 @@ export default function CryptoSwap() {
         <div className="flex flex-col">
           {/* Sell Field */}
           <div className="flex flex-col gap-2 rounded-2xl p-4 border-2 border-muted">
-            <div className="text-muted-foreground text-xl">Sell</div>
+            <div className="flex flex-row items-center justify-between">
+              <div className="text-muted-foreground text-xl">Sell</div>
+              <Button variant="ghost" size="icon"><RefreshCcw /></Button>
+            </div>
             <div className="flex flex-row items-center justify-between">
               <input
                 type="text"
@@ -70,7 +73,10 @@ export default function CryptoSwap() {
 
           {/* Buy Field */}
           <div className="flex flex-col gap-2 rounded-2xl p-4 border-2 border-muted">
-            <div className="text-muted-foreground text-xl">Buy</div>
+            <div className="flex flex-row items-center justify-between">
+              <div className="text-muted-foreground text-xl">Buy</div>
+              <Button variant="ghost" size="icon"><RefreshCcw /></Button>
+            </div>
             <div className="flex flex-row items-center justify-between">
               <input
                 type="text"
@@ -103,7 +109,7 @@ export default function CryptoSwap() {
 
           {/* Action Button */}
           <Button
-            className="w-full rounded-2xl h-14 text-lg mt-2"
+            className="w-full rounded-xl h-14 text-lg mt-4"
             disabled={!sellAmount || !buyAmount}
           >
             Enter an amount
