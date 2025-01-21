@@ -33,6 +33,7 @@ interface TransactionStatusProps {
   error?: Error | null;
   config: {
     chains?: readonly {
+      id: number;
       blockExplorers?: {
         default?: {
           url: string;
@@ -40,6 +41,7 @@ interface TransactionStatusProps {
       };
     }[];
   };
+  chainId?: number;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -51,6 +53,7 @@ export function TransactionStatus({
   isConfirmed,
   error,
   config,
+  chainId,
   open = false,
   onOpenChange = () => {},
 }: TransactionStatusProps) {
@@ -75,7 +78,7 @@ export function TransactionStatus({
           Transaction Hash
           <a 
             className="flex flex-row gap-2 items-center underline underline-offset-4" 
-            href={`${config.chains?.[0]?.blockExplorers?.default?.url}/tx/${hash}`} 
+            href={`${config.chains?.find(chain => chain.id === chainId)?.blockExplorers?.default?.url || config.chains?.[0]?.blockExplorers?.default?.url}/tx/${hash}`} 
             target="_blank" 
             rel="noopener noreferrer"
           >

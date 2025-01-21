@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import {
   useSendTransaction,
   useWaitForTransactionReceipt,
-  useConfig
+  useConfig,
+  useChainId
 } from "wagmi";
 import { parseEther, isAddress, Address } from "viem";
 import {
@@ -56,6 +57,9 @@ export default function SendTransaction() {
 
   // useConfig hook to get config
   const config = useConfig();
+
+  // useChainId hook to get chainId
+  const chainId = useChainId();
 
   // useMediaQuery hook to check if the screen is desktop
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -187,6 +191,7 @@ export default function SendTransaction() {
         isConfirmed={isConfirmed}
         error={error}
         config={config}
+        chainId={chainId}
         open={open}
         onOpenChange={setOpen}
       />
