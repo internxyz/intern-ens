@@ -51,6 +51,8 @@ export default function CryptoSwap() {
   const [selectedSellToken, setSelectedSellToken] = useState<Token | undefined>(undefined);
   const [selectedBuyToken, setSelectedBuyToken] = useState<Token | undefined>(undefined);
 
+  const [swapOrderState, setSwapOrderState] = useState<boolean>(false);
+
   useEffect(() => {
     const filtered = tokenList.filter(
       (token) => token.address.split("/")[0] === `eip155:${chainId}`
@@ -142,6 +144,26 @@ export default function CryptoSwap() {
     setBuyMenuState(false);
   }
 
+  function handleSwapTokens() {
+    // Swap the selected tokens
+    const tempToken = selectedSellToken;
+    setSelectedSellToken(selectedBuyToken);
+    setSelectedBuyToken(tempToken);
+    
+    // Swap the amounts
+    const tempAmount = sellAmount;
+    setSellAmount(buyAmount);
+    setBuyAmount(tempAmount);
+
+    // update the filtered lists
+    const newBuyList = filteredTokenSellList
+    const newSellList = filteredTokenBuyList
+    setFilteredTokenBuyList(newBuyList);
+    setFilteredTokenSellList(newSellList);
+
+    setSwapOrderState(!swapOrderState);
+  }
+
   return (
     <div className="min-h-screen flex justify-center items-start">
       <div className="w-full max-w-md">
@@ -154,7 +176,7 @@ export default function CryptoSwap() {
         {/* Swap Interface */}
         <div className="flex flex-col gap-4">
           {/* Sell Field */}
-          <div className="flex flex-col gap-2 rounded-2xl p-4 border-2 border-muted">
+          <div className={`flex flex-col gap-2 rounded-2xl p-4 border-2 border-muted ${swapOrderState ? "bg-secondary" : ""}`}>
             <div className="flex flex-row items-center justify-between">
               <div className="text-muted-foreground text-xl">Sell</div>
               <Button variant="ghost" size="icon" onClick={refetchSellSide}>
@@ -173,59 +195,66 @@ export default function CryptoSwap() {
                 {isDesktop ? (
                   <Dialog open={sellMenuState} onOpenChange={setSellMenuState}>
                     <DialogTrigger asChild>
-                      <Button
-                        className="flex flex-row items-center gap-2 pl-5 pr-6 rounded-full"
-                        variant="outline"
-                      >
-                        {account.address === undefined &&
-                        nativeBalance === undefined ? (
-                          <>
-                            <Image
-                              src={`/logos/eth.svg`}
-                              alt="eth"
-                              width={30}
-                              height={30}
-                              className="rounded-full"
-                            />
-                            <div className="text-lg font-semibold">
-                              ETH
-                            </div>
-                            <ChevronDown className="h-4 w-4" />
-                          </>
-                        ) : account.address && nativeBalance === undefined ? (
-                          <Skeleton className="w-6 h-6 rounded-full" />
-                        ) : account.address &&
-                          nativeBalance !== undefined &&
-                          selectedSellToken!.symbol === nativeBalance.symbol ? (
-                          <>
-                            <Image
-                              src={`/logos/${nativeBalance.symbol}.svg`}
-                              alt={nativeBalance.symbol}
-                              width={30}
-                              height={30}
-                              className="rounded-full"
-                            />
-                            <div className="text-lg font-semibold">
-                              {nativeBalance.symbol}
-                            </div>
-                            <ChevronDown className="h-4 w-4" />
-                          </>
+                      { selectedSellToken ? (
+                          <Button
+                            className="flex flex-row items-center gap-2 pl-5 pr-6 rounded-full"
+                            variant="outline"
+                          >
+                            {account.address === undefined &&
+                            nativeBalance === undefined ? (
+                              <>
+                                <Image
+                                  src={`/logos/eth.svg`}
+                                  alt="eth"
+                                  width={30}
+                                  height={30}
+                                  className="rounded-full"
+                                />
+                                <div className="text-lg font-semibold">
+                                  ETH
+                                </div>
+                                <ChevronDown className="h-4 w-4" />
+                              </>
+                            ) : account.address && nativeBalance === undefined ? (
+                              <Skeleton className="w-6 h-6 rounded-full" />
+                            ) : account.address &&
+                              nativeBalance !== undefined &&
+                              selectedSellToken?.symbol === nativeBalance.symbol ? (
+                              <>
+                                <Image
+                                  src={`/logos/${nativeBalance.symbol}.svg`}
+                                  alt={nativeBalance.symbol}
+                                  width={30}
+                                  height={30}
+                                  className="rounded-full"
+                                />
+                                <div className="text-lg font-semibold">
+                                  {nativeBalance.symbol}
+                                </div>
+                                <ChevronDown className="h-4 w-4" />
+                              </>
+                            ) : (
+                              <>
+                                <Image
+                                  src={selectedSellToken!.icon}
+                                  alt={selectedSellToken!.name}
+                                  width={30}
+                                  height={30}
+                                  className="rounded-full"
+                                />
+                                <div className="text-lg font-semibold">
+                                  {selectedSellToken!.symbol}
+                                </div>
+                                <ChevronDown className="h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
                         ) : (
-                          <>
-                            <Image
-                              src={selectedSellToken!.icon}
-                              alt={selectedSellToken!.name}
-                              width={30}
-                              height={30}
-                              className="rounded-full"
-                            />
-                            <div className="text-lg font-semibold">
-                              {selectedSellToken!.symbol}
-                            </div>
-                            <ChevronDown className="h-4 w-4" />
-                          </>
-                        )}
-                      </Button>
+                          <Button>
+                            Select a token
+                          </Button>
+                        )
+                      }
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
@@ -281,57 +310,66 @@ export default function CryptoSwap() {
                 ) : (
                   <Drawer open={sellMenuState} onOpenChange={setSellMenuState}>
                     <DrawerTrigger asChild>
-                      <Button
-                        className="flex flex-row items-center gap-2 pl-5 pr-6 rounded-full"
-                        variant="outline"
-                      >
-                        {account.address === undefined ||
-                        nativeBalance === undefined ? (
-                          <>
-                            <Image
-                              src={`/logos/eth.svg`}
-                              alt="eth"
-                              width={30}
-                              height={30}
-                              className="rounded-full"
-                            />
-                            <div className="text-lg font-semibold">ETH</div>
-                            <ChevronDown className="h-4 w-4" />
-                          </>
-                        ) : account.address && nativeBalance === undefined ? (
-                          <Skeleton className="w-6 h-6 rounded-full" />
-                        ) : account.address &&
-                          nativeBalance !== undefined &&
-                          selectedSellToken!.symbol === nativeBalance.symbol ? (
-                          <>
-                            <Image
-                              src={`/logos/${nativeBalance.symbol}.svg`}
-                              alt={nativeBalance.symbol}
-                              width={30}
-                              height={30}
-                              className="rounded-full"
-                            />
-                            <div className="text-lg font-semibold">
-                              {nativeBalance.symbol}
-                            </div>
-                            <ChevronDown className="h-4 w-4" />
-                          </>
+                      { selectedSellToken ? (
+                          <Button
+                            className="flex flex-row items-center gap-2 pl-5 pr-6 rounded-full"
+                            variant="outline"
+                          >
+                            {account.address === undefined &&
+                            nativeBalance === undefined ? (
+                              <>
+                                <Image
+                                  src={`/logos/eth.svg`}
+                                  alt="eth"
+                                  width={30}
+                                  height={30}
+                                  className="rounded-full"
+                                />
+                                <div className="text-lg font-semibold">
+                                  ETH
+                                </div>
+                                <ChevronDown className="h-4 w-4" />
+                              </>
+                            ) : account.address && nativeBalance === undefined ? (
+                              <Skeleton className="w-6 h-6 rounded-full" />
+                            ) : account.address &&
+                              nativeBalance !== undefined &&
+                              selectedSellToken?.symbol === nativeBalance.symbol ? (
+                              <>
+                                <Image
+                                  src={`/logos/${nativeBalance.symbol}.svg`}
+                                  alt={nativeBalance.symbol}
+                                  width={30}
+                                  height={30}
+                                  className="rounded-full"
+                                />
+                                <div className="text-lg font-semibold">
+                                  {nativeBalance.symbol}
+                                </div>
+                                <ChevronDown className="h-4 w-4" />
+                              </>
+                            ) : (
+                              <>
+                                <Image
+                                  src={selectedSellToken!.icon}
+                                  alt={selectedSellToken!.name}
+                                  width={30}
+                                  height={30}
+                                  className="rounded-full"
+                                />
+                                <div className="text-lg font-semibold">
+                                  {selectedSellToken!.symbol}
+                                </div>
+                                <ChevronDown className="h-4 w-4" />
+                              </>
+                            )}
+                          </Button>
                         ) : (
-                          <>
-                            <Image
-                              src={selectedSellToken!.icon}
-                              alt={selectedSellToken!.name}
-                              width={30}
-                              height={30}
-                              className="rounded-full"
-                            />
-                            <div className="text-lg font-semibold">
-                              {selectedSellToken!.symbol}
-                            </div>
-                            <ChevronDown className="h-4 w-4" />
-                          </>
-                        )}
-                      </Button>
+                          <Button>
+                            Select a token
+                          </Button>
+                        )
+                      }
                     </DrawerTrigger>
                     <DrawerContent>
                       <DrawerHeader>
@@ -391,31 +429,40 @@ export default function CryptoSwap() {
             </div>
             <div className="flex flex-row items-center justify-between">
               <div className="text-muted-foreground">$ -</div>
-              <div className="flex flex-row items-center gap-2">
-                {account.address === undefined ? null : account.address &&
-                  isNativeBalancePending ? (
-                  <Skeleton className="w-8 h-8 rounded-md" />
-                ) : (
-                  <>
+              {
+                swapOrderState ? (
+                  <div className="flex flex-row items-center gap-2">
                     <div className="text-muted-foreground">
-                      {roundBalanceString(
-                        formatUnits(
-                          nativeBalance?.value || BigInt(0),
-                          nativeBalance?.decimals || 18
-                        )
-                      )}{" "}
-                      {nativeBalance?.symbol}
+                      0.0000
                     </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={inputMaxSellAmount}
-                    >
-                      Max
-                    </Button>
-                  </>
-                )}
-              </div>
+                  </div>
+              ) : (
+                <div className="flex flex-row items-center gap-2">
+                  {account.address === undefined ? null : account.address &&
+                    isNativeBalancePending ? (
+                    <Skeleton className="w-8 h-8 rounded-md" />
+                  ) : (
+                    <>
+                      <div className="text-muted-foreground">
+                        {roundBalanceString(
+                          formatUnits(
+                            nativeBalance?.value || BigInt(0),
+                            nativeBalance?.decimals || 18
+                          )
+                        )}{" "}
+                        {nativeBalance?.symbol}
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={inputMaxSellAmount}
+                      >
+                        Max
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -425,13 +472,14 @@ export default function CryptoSwap() {
               variant="outline"
               size="icon"
               className="rounded-lg bg-background border-2 border-muted"
+              onClick={handleSwapTokens}
             >
               <ChevronsUpDown className="h-6 w-6" />
             </Button>
           </div>
 
           {/* Buy Field */}
-          <div className="flex flex-col gap-2 rounded-2xl p-4 border-2 border-muted bg-secondary">
+          <div className={`flex flex-col gap-2 rounded-2xl p-4 border-2 border-muted ${swapOrderState ? "" : "bg-secondary"}`}>
             <div className="flex flex-row items-center justify-between">
               <div className="text-muted-foreground text-xl">Buy</div>
               <Button variant="ghost" size="icon">
@@ -614,9 +662,40 @@ export default function CryptoSwap() {
             </div>
             <div className="flex flex-row items-center justify-between">
               <div className="text-muted-foreground">$ -</div>
-              <div className="text-muted-foreground">
-                0.0000
-              </div>
+              {
+                swapOrderState ? (
+                  <div className="flex flex-row items-center gap-2">
+                    {account.address === undefined ? null : account.address &&
+                      isNativeBalancePending ? (
+                      <Skeleton className="w-8 h-8 rounded-md" />
+                    ) : (
+                      <>
+                        <div className="text-muted-foreground">
+                          {roundBalanceString(
+                            formatUnits(
+                              nativeBalance?.value || BigInt(0),
+                              nativeBalance?.decimals || 18
+                            )
+                          )}{" "}
+                          {nativeBalance?.symbol}
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={inputMaxSellAmount}
+                        >
+                          Max
+                        </Button>
+                      </>
+                    )}
+                  </div>
+              ) : (
+                <div className="flex flex-row items-center gap-2">
+                  <div className="text-muted-foreground">
+                    0.0000
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
