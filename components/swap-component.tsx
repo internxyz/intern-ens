@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useBalance, useAccount } from "wagmi";
+import { formatUnits } from "viem";
 import { Button } from "@/components/ui/button";
 import { Settings, ChevronDown, RefreshCcw, Wallet, Coins } from "lucide-react";
 import {
@@ -53,11 +55,28 @@ export default function CryptoSwap() {
   const [sellAmount, setSellAmount] = useState("");
   const [buyAmount, setBuyAmount] = useState("");
 
+  // get account
+  const account = useAccount()
+
+  // get native balance
+  const { data: nativeBalance, refetch: refetchNativeBalance } = useBalance({
+    address: account.address,
+  });
+
   // useMediaQuery hook to check if the screen is desktop
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   function truncateAddress(address: string) {
     return address.slice(0, 6) + "..." + address.slice(-4);
+  }
+
+  function roundBalanceString(balanceString: string) {
+    const balance = parseFloat(balanceString);
+    return balance.toFixed(4);
+  }
+
+  function refetchSellSide() {
+    refetchNativeBalance()
   }
 
   return (
@@ -71,12 +90,12 @@ export default function CryptoSwap() {
         </div>
 
         {/* Swap Interface */}
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-4">
           {/* Sell Field */}
           <div className="flex flex-col gap-2 rounded-2xl p-4 border-2 border-muted">
             <div className="flex flex-row items-center justify-between">
               <div className="text-muted-foreground text-xl">Sell</div>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={refetchSellSide}>
                 <RefreshCcw />
               </Button>
             </div>
@@ -97,13 +116,14 @@ export default function CryptoSwap() {
                         variant="outline"
                       >
                         <Image
-                          src={tokenList[0].icon}
-                          alt={tokenList[0].name}
+                          src={`/logos/${nativeBalance?.symbol || "eth"}.svg`}
+                          alt={nativeBalance?.symbol || "native token"}
                           width={30}
                           height={30}
+                          className="rounded-full"
                         />
                         <div className="text-lg font-semibold">
-                          {tokenList[0].symbol}
+                          {nativeBalance?.symbol}
                         </div>
                         <ChevronDown className="h-4 w-4" />
                       </Button>
@@ -218,9 +238,9 @@ export default function CryptoSwap() {
               </div>
             </div>
             <div className="flex flex-row items-center justify-between">
-              <div className="text-muted-foreground">$0</div>
+              <div className="text-muted-foreground">$ -</div>
               <div className="flex flex-row items-center gap-2">
-                <div className="text-muted-foreground">0.0002 ETH</div>
+                <div className="text-muted-foreground">{roundBalanceString(formatUnits(nativeBalance?.value || BigInt(0), nativeBalance?.decimals || 18))} {nativeBalance?.symbol}</div>
                 <Button variant="secondary" size="sm">
                   Max
                 </Button>
@@ -229,7 +249,7 @@ export default function CryptoSwap() {
           </div>
 
           {/* Swap Button */}
-          <div className="flex justify-center relative -my-[18px]">
+          <div className="flex flex-col justify-center items-center">
             <Button
               variant="outline"
               size="icon"
@@ -275,7 +295,7 @@ export default function CryptoSwap() {
               </div>
             </div>
             <div className="flex flex-row items-start">
-              <div className="text-muted-foreground">$0</div>
+              <div className="text-muted-foreground">$ -</div>
             </div>
           </div>
 
