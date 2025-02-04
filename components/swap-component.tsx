@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useBalance, useAccount } from "wagmi";
 import { formatUnits } from "viem";
 import { Button } from "@/components/ui/button";
-import { Settings, ChevronDown, RefreshCcw, Wallet, Coins } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton"
+import { Settings, ChevronDown, ChevronsUpDown, RefreshCcw, Coins } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -115,17 +116,39 @@ export default function CryptoSwap() {
                         className="flex flex-row items-center gap-2 pl-5 pr-6 rounded-full"
                         variant="outline"
                       >
-                        <Image
-                          src={`/logos/${nativeBalance?.symbol || "eth"}.svg`}
-                          alt={nativeBalance?.symbol || "native token"}
-                          width={30}
-                          height={30}
-                          className="rounded-full"
-                        />
-                        <div className="text-lg font-semibold">
-                          {nativeBalance?.symbol}
-                        </div>
-                        <ChevronDown className="h-4 w-4" />
+                        {
+                          account.address === undefined || nativeBalance === undefined ? (
+                            <>
+                              <Image
+                                src={`/logos/eth.svg`}
+                                alt="ETH"
+                                width={30}
+                                height={30}
+                                className="rounded-full"
+                            />
+                              <div className="text-lg font-semibold">
+                                ETH
+                              </div>
+                              <ChevronDown className="h-4 w-4" />
+                            </>
+                          ) : account.address && nativeBalance === undefined ? (
+                              <Skeleton className="w-6 h-6 rounded-full" />
+                          ) : (
+                            <>
+                              <Image
+                                src={`/logos/${nativeBalance.symbol}.svg`}
+                                alt={nativeBalance.symbol}
+                                width={30}
+                                height={30}
+                                className="rounded-full"
+                            />
+                              <div className="text-lg font-semibold">
+                                {nativeBalance.symbol}
+                              </div>
+                              <ChevronDown className="h-4 w-4" />
+                            </>
+                          )
+                        }
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -137,7 +160,7 @@ export default function CryptoSwap() {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="flex flex-col gap-4">
-                        <div className="flex flex-col gap-4">
+                        {/* <div className="flex flex-col gap-4">
                           <div className="flex flex-row items-center gap-2 text-lg text-muted-foreground">
                             <Wallet className="h-4 w-4" />
                             Your tokens
@@ -170,7 +193,7 @@ export default function CryptoSwap() {
                               </div>
                             ))}
                           </div>
-                        </div>
+                        </div> */}
                         <div className="flex flex-col gap-4">
                           <div className="flex flex-row items-center gap-2 text-lg text-muted-foreground">
                             <Coins className="h-4 w-4" />
@@ -240,10 +263,22 @@ export default function CryptoSwap() {
             <div className="flex flex-row items-center justify-between">
               <div className="text-muted-foreground">$ -</div>
               <div className="flex flex-row items-center gap-2">
-                <div className="text-muted-foreground">{roundBalanceString(formatUnits(nativeBalance?.value || BigInt(0), nativeBalance?.decimals || 18))} {nativeBalance?.symbol}</div>
-                <Button variant="secondary" size="sm">
-                  Max
-                </Button>
+                {
+                  account.address === undefined || nativeBalance === undefined ? (
+                    null
+                  ) : account.address && nativeBalance === undefined ? (
+                    <Skeleton className="w-8 h-8 rounded-md" />
+                  ) : (
+                    <>
+                      <div className="text-muted-foreground">
+                        {roundBalanceString(formatUnits(nativeBalance?.value || BigInt(0), nativeBalance?.decimals || 18))} {nativeBalance?.symbol}
+                      </div>
+                      <Button variant="secondary" size="sm">
+                        Max
+                      </Button>
+                    </>
+                  )
+                }
               </div>
             </div>
           </div>
@@ -255,7 +290,7 @@ export default function CryptoSwap() {
               size="icon"
               className="rounded-lg bg-background border-2 border-muted"
             >
-              <ChevronDown className="h-6 w-6" />
+              <ChevronsUpDown className="h-6 w-6" />
             </Button>
           </div>
 
