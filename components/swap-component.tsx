@@ -30,26 +30,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import Image from "next/image";
+import { useToast } from "@/hooks/use-toast"
 
 const tokenList = [
   {
     name: "Ethereum",
     symbol: "ETH",
     icon: "/logos/eth.svg",
-    address: "0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE",
+    address: "eip155:8453/0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE",
   },
   {
     name: "USD Coin",
     symbol: "USDC",
     icon: "/logos/usdc.svg",
-    address: "0x0000000000000000000000000000000000000000",
+    address: "eip155:84532/0x0000000000000000000000000000000000000000",
   },
   {
     name: "Tether",
     symbol: "USDT",
     icon: "/logos/usdt.svg",
-    address: "0x0000000000000000000000000000000000000000",
+    address: "eip155:84532/0x0000000000000000000000000000000000000000",
   },
+  {
+    name: "Kaia",
+    symbol: "KAIA",
+    icon: "/logos/kaia.svg",
+    address: "eip155:1001/0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE",
+  }
 ];
 
 export default function CryptoSwap() {
@@ -60,12 +67,15 @@ export default function CryptoSwap() {
   const account = useAccount()
 
   // get native balance
-  const { data: nativeBalance, refetch: refetchNativeBalance } = useBalance({
+  const { data: nativeBalance, isPending: isNativeBalancePending, isSuccess: isNativeBalanceSuccess, isError: isNativeBalanceError, refetch: refetchNativeBalance } = useBalance({
     address: account.address,
   });
 
   // useMediaQuery hook to check if the screen is desktop
   const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  //
+  const { toast } = useToast()
 
   function truncateAddress(address: string) {
     return address.slice(0, 6) + "..." + address.slice(-4);
@@ -78,10 +88,25 @@ export default function CryptoSwap() {
 
   function refetchSellSide() {
     refetchNativeBalance()
+    if (isNativeBalanceSuccess) {
+      toast({
+        description: "Refetched data!",
+      })
+    }
+    if (isNativeBalanceError) {
+      toast({
+        description: "Error refetching data!",
+        variant: "destructive",
+      })
+    }
+  }
+
+  function inputMaxSellAmount() {
+    setSellAmount(formatUnits(nativeBalance?.value || BigInt(0), nativeBalance?.decimals || 18))
   }
 
   return (
-    <div className="min-h-screen p-4 flex justify-center items-start">
+    <div className="min-h-screen flex justify-center items-start">
       <div className="w-full max-w-md">
         {/* Navigation */}
         <div className="flex flex-row items-end justify-end mb-4">
@@ -89,7 +114,6 @@ export default function CryptoSwap() {
             <Settings />
           </Button>
         </div>
-
         {/* Swap Interface */}
         <div className="flex flex-col gap-4">
           {/* Sell Field */}
@@ -264,16 +288,16 @@ export default function CryptoSwap() {
               <div className="text-muted-foreground">$ -</div>
               <div className="flex flex-row items-center gap-2">
                 {
-                  account.address === undefined || nativeBalance === undefined ? (
+                  account.address === undefined ? (
                     null
-                  ) : account.address && nativeBalance === undefined ? (
+                  ) : account.address && isNativeBalancePending ? (
                     <Skeleton className="w-8 h-8 rounded-md" />
                   ) : (
                     <>
                       <div className="text-muted-foreground">
                         {roundBalanceString(formatUnits(nativeBalance?.value || BigInt(0), nativeBalance?.decimals || 18))} {nativeBalance?.symbol}
                       </div>
-                      <Button variant="secondary" size="sm">
+                      <Button variant="secondary" size="sm" onClick={inputMaxSellAmount}>
                         Max
                       </Button>
                     </>

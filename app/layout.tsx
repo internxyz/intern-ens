@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import '@rainbow-me/rainbowkit/styles.css';
 import { Providers } from '@/app/providers';
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,6 +35,7 @@ export default function RootLayout({
           <main className="p-4 md:p-12">
             {children}
           </main>
+          <Toaster />
         </Providers>
       </body>
     </html>
