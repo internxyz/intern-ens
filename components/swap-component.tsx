@@ -301,7 +301,7 @@ export default function CryptoSwap() {
                               selectedSellToken?.symbol === nativeBalance.symbol ? (
                               <>
                                 <Image
-                                  src={`/logos/${nativeBalance.symbol}.svg`}
+                                  src={`/logos/${nativeBalance.symbol.toLowerCase()}.svg`}
                                   alt={nativeBalance.symbol}
                                   width={30}
                                   height={30}
@@ -315,7 +315,7 @@ export default function CryptoSwap() {
                             ) : (
                               <>
                                 <Image
-                                  src={selectedSellToken!.icon}
+                                  src={selectedSellToken!.icon.toLowerCase()}
                                   alt={selectedSellToken!.name}
                                   width={30}
                                   height={30}
@@ -359,7 +359,7 @@ export default function CryptoSwap() {
                               >
                                 <div className="flex flex-row items-center gap-2">
                                   <Image
-                                    src={token.icon}
+                                    src={token.icon.toLowerCase()}
                                     alt={token.name}
                                     width={40}
                                     height={40}
@@ -416,7 +416,7 @@ export default function CryptoSwap() {
                               selectedSellToken?.symbol === nativeBalance.symbol ? (
                               <>
                                 <Image
-                                  src={`/logos/${nativeBalance.symbol}.svg`}
+                                  src={`/logos/${nativeBalance.symbol.toLowerCase()}.svg`}
                                   alt={nativeBalance.symbol}
                                   width={30}
                                   height={30}
@@ -430,7 +430,7 @@ export default function CryptoSwap() {
                             ) : (
                               <>
                                 <Image
-                                  src={selectedSellToken!.icon}
+                                  src={selectedSellToken!.icon.toLowerCase()}
                                   alt={selectedSellToken!.name}
                                   width={30}
                                   height={30}
@@ -473,7 +473,7 @@ export default function CryptoSwap() {
                               >
                                 <div className="flex flex-row items-center gap-2">
                                   <Image
-                                    src={token.icon}
+                                    src={token.icon.toLowerCase()}
                                     alt={token.name}
                                     width={40}
                                     height={40}
@@ -584,7 +584,7 @@ export default function CryptoSwap() {
                           variant="outline"
                           >
                             <Image
-                              src={selectedBuyToken.icon}
+                              src={selectedBuyToken.icon.toLowerCase()}
                               alt={selectedBuyToken.name}
                               width={30}
                               height={30}
@@ -627,7 +627,7 @@ export default function CryptoSwap() {
                               >
                                 <div className="flex flex-row items-center gap-2">
                                   <Image
-                                    src={token.icon}
+                                    src={token.icon.toLowerCase()}
                                     alt={token.name}
                                     width={40}
                                     height={40}
@@ -664,7 +664,7 @@ export default function CryptoSwap() {
                           variant="outline"
                           >
                             <Image
-                              src={selectedBuyToken.icon}
+                              src={selectedBuyToken.icon.toLowerCase()}
                               alt={selectedBuyToken.name}
                               width={30}
                               height={30}
@@ -706,7 +706,7 @@ export default function CryptoSwap() {
                               >
                                 <div className="flex flex-row items-center gap-2">
                                   <Image
-                                    src={token.icon}
+                                    src={token.icon.toLowerCase()}
                                     alt={token.name}
                                     width={40}
                                     height={40}
