@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useBalance, useAccount, useChainId } from "wagmi";
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -41,6 +41,12 @@ interface Token {
   address: string;
 }
 
+enum SwapTokenState {
+  QUOTE = "quote",
+  READY = "ready",
+  SWAPPED = "swapped",
+}
+
 export default function CryptoSwap() {
   const [sellAmount, setSellAmount] = useState<string>("");
   const [buyAmount, setBuyAmount] = useState<string>("");
@@ -52,6 +58,8 @@ export default function CryptoSwap() {
   const [selectedBuyToken, setSelectedBuyToken] = useState<Token | undefined>(undefined);
 
   const [swapOrderState, setSwapOrderState] = useState<boolean>(false);
+
+  const [swapTokenState, setSwapTokenState] = useState<SwapTokenState>(SwapTokenState.QUOTE);
 
   useEffect(() => {
     const filtered = tokenList.filter(
@@ -102,17 +110,44 @@ export default function CryptoSwap() {
   }
 
   function refetchSellSide() {
-    refetchNativeBalance();
-    if (isNativeBalanceSuccess) {
-      toast({
-        description: "Refetched data!",
-      });
+    if (swapOrderState === true) {
+      fetchQuote(selectedSellToken!.address, selectedBuyToken!.address, sellAmount);
     }
-    if (isNativeBalanceError) {
-      toast({
-        description: "Error refetching data!",
-        variant: "destructive",
-      });
+
+    if (swapOrderState === false) {
+      refetchNativeBalance();
+      if (isNativeBalanceSuccess) {
+        toast({
+          description: "Refetched data!",
+        });
+      }
+      if (isNativeBalanceError) {
+        toast({
+          description: "Error refetching data!",
+          variant: "destructive",
+        });
+      }
+    }
+  }
+
+  function refetchBuySide() {
+    if (swapOrderState === true) {
+      refetchNativeBalance();
+      if (isNativeBalanceSuccess) {
+        toast({
+          description: "Refetched data!",
+        });
+      }
+      if (isNativeBalanceError) {
+        toast({
+          description: "Error refetching data!",
+          variant: "destructive",
+        });
+      }
+    }
+
+    if (swapOrderState === false) {
+      fetchQuote(selectedSellToken!.address, selectedBuyToken!.address, sellAmount);
     }
   }
 
@@ -161,7 +196,51 @@ export default function CryptoSwap() {
     setFilteredTokenBuyList(newBuyList);
     setFilteredTokenSellList(newSellList);
 
+    // update the swap order state
     setSwapOrderState(!swapOrderState);
+  }
+
+  async function fetchQuote(tokenA: string, tokenB: string, tokenAmountIn: string) {
+    // delay for 0.2 seconds
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    let quoteAmount;
+    switch (tokenA) {
+      case "eip155:84532/0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE":
+        switch (tokenB) {
+          case "eip155:84532/0x0000000000000000000000000000000000000001":
+            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
+            setBuyAmount(formatUnits(quoteAmount, 18));
+            break;
+          case "eip155:84532/0x0000000000000000000000000000000000000002":
+            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
+            setBuyAmount(formatUnits(quoteAmount, 18));
+            break;
+          default:
+            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
+            setBuyAmount(formatUnits(quoteAmount, 18));
+        }
+        break;
+
+      case "eip155:84532/0x0000000000000000000000000000000000000001":
+        switch (tokenB) {
+          case "eip155:84532/0x0000000000000000000000000000000000000002":
+            // quote same amount
+            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(1);
+            setBuyAmount(formatUnits(quoteAmount, 18));
+            break;
+          case "eip155:84532/0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE":
+            // quote random amount opposite of sell token
+            quoteAmount = parseUnits(tokenAmountIn, 18) / BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
+            setBuyAmount(formatUnits(quoteAmount, 18));
+            break;
+          default:
+            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
+            setBuyAmount(formatUnits(quoteAmount, 18));
+        }
+    }
+    
+    setSwapTokenState(SwapTokenState.READY);
   }
 
   return (
@@ -482,7 +561,7 @@ export default function CryptoSwap() {
           <div className={`flex flex-col gap-2 rounded-2xl p-4 border-2 border-muted ${swapOrderState ? "" : "bg-secondary"}`}>
             <div className="flex flex-row items-center justify-between">
               <div className="text-muted-foreground text-xl">Buy</div>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={refetchBuySide}>
                 <RefreshCcw />
               </Button>
             </div>
@@ -700,12 +779,35 @@ export default function CryptoSwap() {
           </div>
 
           {/* Action Button */}
-          <Button
-            className="w-full rounded-xl h-14 text-lg mt-4"
-            disabled={!sellAmount || !buyAmount}
-          >
-            Enter an amount
-          </Button>
+          {
+            sellAmount !== "" && swapTokenState === SwapTokenState.QUOTE ? (
+              <Button
+                className="w-full rounded-xl h-14 text-lg mt-4"
+                onClick={() => fetchQuote(selectedSellToken!.address, selectedBuyToken!.address, sellAmount)}
+              >
+                Find a quote
+              </Button>
+            ) : sellAmount === ""  ? (
+              <Button
+                className="w-full rounded-xl h-14 text-lg mt-4"
+                disabled={true}
+              >
+                Enter an amount
+              </Button>
+            ) : swapTokenState === SwapTokenState.READY ? (
+              <Button
+                className="w-full rounded-xl h-14 text-lg mt-4"
+              >
+                Review
+              </Button>
+            ) : (
+              <Button
+                className="w-full rounded-xl h-14 text-lg mt-4"
+              >
+                Swap
+              </Button>
+            )
+          }
         </div>
       </div>
     </div>
@@ -724,13 +826,13 @@ const tokenList: Token[] = [
     name: "USD Coin",
     symbol: "USDC",
     icon: "/logos/usdc.svg",
-    address: "eip155:84532/0x0000000000000000000000000000000000000000",
+    address: "eip155:84532/0x0000000000000000000000000000000000000001",
   },
   {
     name: "Tether",
     symbol: "USDT",
     icon: "/logos/usdt.svg",
-    address: "eip155:84532/0x0000000000000000000000000000000000000000",
+    address: "eip155:84532/0x0000000000000000000000000000000000000002",
   },
   {
     name: "Kaia",
@@ -742,12 +844,12 @@ const tokenList: Token[] = [
     name: "USD Coin",
     symbol: "USDC",
     icon: "/logos/usdc.svg",
-    address: "eip155:1001/0x0000000000000000000000000000000000000000",
+    address: "eip155:1001/0x0000000000000000000000000000000000000001",
   },
   {
     name: "Tether",
     symbol: "USDT",
     icon: "/logos/usdt.svg",
-    address: "eip155:1001/0x0000000000000000000000000000000000000000",
+    address: "eip155:1001/0x0000000000000000000000000000000000000002",
   },
 ];
