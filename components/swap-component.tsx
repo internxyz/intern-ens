@@ -11,6 +11,7 @@ import {
   ChevronsUpDown,
   RefreshCcw,
   Coins,
+  Quote
 } from "lucide-react";
 import {
   Dialog,
@@ -33,6 +34,7 @@ import {
 import { useMediaQuery } from "@/hooks/use-media-query";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
+// import { TransactionStatus } from "@/components/transaction-status";
 
 interface Token {
   name: string;
@@ -779,35 +781,49 @@ export default function CryptoSwap() {
           </div>
 
           {/* Action Button */}
-          {
-            sellAmount !== "" && swapTokenState === SwapTokenState.QUOTE ? (
-              <Button
-                className="w-full rounded-xl h-14 text-lg mt-4"
-                onClick={() => fetchQuote(selectedSellToken!.address, selectedBuyToken!.address, sellAmount)}
-              >
-                Find a quote
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row gap-2 items-center mt-4 w-full h-14">
+              <Button variant="outline" className="w-14 h-14 rounded-xl">
+                <Quote className="h-8 w-8" />
               </Button>
-            ) : sellAmount === ""  ? (
-              <Button
-                className="w-full rounded-xl h-14 text-lg mt-4"
-                disabled={true}
-              >
-                Enter an amount
-              </Button>
-            ) : swapTokenState === SwapTokenState.READY ? (
-              <Button
-                className="w-full rounded-xl h-14 text-lg mt-4"
-              >
-                Review
-              </Button>
-            ) : (
-              <Button
-                className="w-full rounded-xl h-14 text-lg mt-4"
-              >
-                Swap
-              </Button>
-            )
-          }
+              {
+                sellAmount !== "" && swapTokenState === SwapTokenState.QUOTE ? (
+                  <Button
+                    className="w-full rounded-xl h-14 text-lg"
+                    onClick={() => fetchQuote(selectedSellToken!.address, selectedBuyToken!.address, sellAmount)}
+                  >
+                    Find a quote
+                  </Button>
+                ) : sellAmount === ""  ? (
+                  <Button
+                    className="w-full rounded-xl h-14 text-lg"
+                    disabled={true}
+                  >
+                    Enter an amount
+                  </Button>
+                ) : swapTokenState === SwapTokenState.READY ? (
+                  <Button
+                    className="w-full rounded-xl h-14 text-lg"
+                  >
+                    Review
+                  </Button>
+                ) : (
+                  <Button
+                    className="w-full rounded-xl h-14 text-lg"
+                  >
+                    Swap
+                  </Button>
+                )
+              }
+            </div>
+            {/* <TransactionStatus
+              hash={hash}
+              isPending={isPending}
+              isConfirming={isConfirming}
+              isConfirmed={isConfirmed}
+              error={error}
+            /> */}
+          </div>
         </div>
       </div>
     </div>
