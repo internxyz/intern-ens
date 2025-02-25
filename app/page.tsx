@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Globe, AppWindowMac, File, Rocket } from 'lucide-react';
+import { Globe, AppWindowMac, MessageSquare, Rocket } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -52,12 +52,12 @@ export default function Home() {
         <div className="flex gap-6 flex-wrap items-center justify-center">
           <a
             className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://github.com/buildstationorg/ethui/tree/main/docs"
+            href="https://github.com/buildstationorg/ethui/discussions"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <File className="w-4 h-4" />
-            Learn
+            <MessageSquare className="w-4 h-4" />
+            Discussions
           </a>
           <a
             className="flex items-center gap-2 hover:underline hover:underline-offset-4"
@@ -70,7 +70,7 @@ export default function Home() {
           </a>
           <a
             className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://openguild.wtf"
+            href="https://buildstation.org"
             target="_blank"
             rel="noopener noreferrer"
           >
