@@ -2,7 +2,7 @@
 import SigpassKit from "@/components/sigpasskit";
 import Link from "next/link";
 
-export default function WalletPage() {
+export default function ConnectWalletPage() {
   return (
     <div className="flex flex-col gap-8 max-w-[768px] mx-auto min-h-screen items-center justify-center">
       <div className="flex flex-col md:flex-row gap-2">

@@ -17,9 +17,33 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "ETH UI kit",
-  description: "a UI scaffolding kit for ETH DApps",
-};
+  title: 'build UI',
+  description: 'bootstrap your dapp with build UI',
+  metadataBase: new URL('https://www.buildui.org'),
+  openGraph: {
+    title: 'build UI',
+    description: 'bootstrap your dapp with build UI',
+    url: 'https://www.buildui.org',
+    siteName: 'build UI',
+    images: [
+      {
+        url: '/buildui-tbn.png',
+        width: 1200,
+        height: 630,
+        alt: 'og-image',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'build UI',
+    description: 'bootstrap your dapp with build UI',
+    creator: '@builduiorg',
+    images: ['/buildui-tbn.png'],
+  },
+}
 
 export default function RootLayout({
   children,

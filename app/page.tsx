@@ -16,16 +16,16 @@ export default function Home() {
         <p>Get started by checking out the demos</p>
         <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
           <li className="mb-2">
-            <Link href="/wallet">Wallet</Link>
+            <Link href="/connect-wallet">Connect wallet</Link>
           </li>
           <li className="mb-2">
             <Link href="/send-transaction">Send transaction</Link>
           </li>
           <li className="mb-2">
-            <Link href="/write-contract">Write contract</Link>
+            <Link href="/portfolio-sidebar">Portfolio sidebar</Link>
           </li>
           <li className="mb-2">
-            <Link href="/mint-redeem-lst-bifrost">Mint/Redeem LST Bifrost</Link>
+            <Link href="/mint-redeem-lst-bifrost">Mint and Redeem LST</Link>
           </li>
         </ol>
         <div className="flex gap-4 items-center flex-col sm:flex-row">
