@@ -8,3 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export function truncateHash(hash: string, startLength: number = 6, endLength: number = 4) {
   return `${hash.slice(0, startLength)}...${hash.slice(-endLength)}`;
 }
+
+export function truncateAddress(address: string, startLength: number = 6, endLength: number = 4) {
+  return `${address.slice(0, startLength)}...${address.slice(-endLength)}`;
+}

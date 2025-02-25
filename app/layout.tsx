@@ -4,6 +4,9 @@ import "./globals.css";
 import '@rainbow-me/rainbowkit/styles.css';
 import { Providers } from '@/app/providers';
 import { Toaster } from "@/components/ui/toaster";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar"
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -56,10 +59,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <main className="p-4 md:p-12">
-            {children}
-          </main>
-          <Toaster />
+          <SidebarProvider>
+            <AppSidebar />
+            <main className="p-4 md:p-12">
+              <SidebarTrigger />
+              {children}
+            </main>
+            <Toaster />
+          </SidebarProvider>
         </Providers>
       </body>
     </html>

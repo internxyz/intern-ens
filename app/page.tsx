@@ -25,6 +25,9 @@ export default function Home() {
             <Link href="/portfolio-sidebar">Portfolio sidebar</Link>
           </li>
           <li className="mb-2">
+            <Link href="/swap">Swap</Link>
+          </li>
+          <li className="mb-2">
             <Link href="/mint-redeem-lst-bifrost">Mint and Redeem LST</Link>
           </li>
         </ol>
