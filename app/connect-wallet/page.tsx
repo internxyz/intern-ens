@@ -1,5 +1,6 @@
 "use client";
 import SigpassKit from "@/components/sigpasskit";
+import BuildKit from "@/components/buildkit";
 import Link from "next/link";
 
 export default function ConnectWalletPage() {
@@ -13,6 +14,7 @@ export default function ConnectWalletPage() {
       </div> 
       <h1 className="text-2xl font-bold">Wallet</h1>
       <SigpassKit />
+      <BuildKit />
     </div>
   );
 }
