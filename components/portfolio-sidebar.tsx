@@ -28,7 +28,7 @@ export function PortfolioSidebar() {
               {address ? getEmojiFromAddress(address) : '👻'}
             </span>
           </div>
-          <p className="text-md">{truncateAddress(address || "", 6, 4)}</p>
+          <p className="text-md">{truncateAddress(address as Address, 6, 4)}</p>
         </div>
         <div className="flex flex-row gap-2 items-center">
           <Button variant="ghost" size="icon">

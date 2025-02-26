@@ -1,5 +1,6 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { Address } from "viem";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -9,7 +10,8 @@ export function truncateHash(hash: string, startLength: number = 6, endLength: n
   return `${hash.slice(0, startLength)}...${hash.slice(-endLength)}`;
 }
 
-export function truncateAddress(address: string, startLength: number = 6, endLength: number = 4) {
+export function truncateAddress(address: Address | undefined, startLength: number = 6, endLength: number = 4) {
+  if (!address) return "";
   return `${address.slice(0, startLength)}...${address.slice(-endLength)}`;
 }
 

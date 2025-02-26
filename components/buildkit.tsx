@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import "@rainbow-me/rainbowkit/styles.css";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +13,7 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  WalletMinimal
 } from "lucide-react";
 import { Address } from "viem";
 import {
@@ -57,6 +57,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { truncateAddress } from "@/lib/utils";
 
 // Set the string key and the initial value
 export const addressAtom = atomWithStorage<Address | undefined>(
@@ -135,11 +136,6 @@ function CreateComponent() {
       setOpen(false);
       setWallet(true);
     }
-  }
-
-  // truncate address to 6 characters and add ... at the end
-  function truncateAddress(address: Address, length: number = 4) {
-    return `${address.slice(0, length)}...${address.slice(-length)}`;
   }
 
   // copy the address to the clipboard
@@ -258,7 +254,7 @@ function CreateComponent() {
               <div className="text-sm text-muted-foreground">
                 Powered by{" "}
                 <a
-                  href="https://github.com/gmgn-app/sigpass"
+                  href="https://sigpasskit.com"
                   className="inline-flex items-center gap-1 font-bold underline underline-offset-4"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -422,7 +418,7 @@ function CreateComponent() {
               <div className="text-sm text-muted-foreground">
                 Powered by{" "}
                 <a
-                  href="https://github.com/gmgn-app/sigpass"
+                  href="https://sigpasskit.com"
                   className="inline-flex items-center gap-1 font-bold underline underline-offset-4"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -521,7 +517,12 @@ function WalletOption({
   }, [connector]);
 
   return (
-    <button disabled={!ready} onClick={onClick}>
+    <button disabled={!ready} onClick={onClick} className="flex flex-row gap-2 items-center">
+      {connector.icon ? (
+        <Image src={connector.icon} alt={connector.name} width={24} height={24} />
+      ): (
+        <WalletMinimal />
+      )}
       {connector.name}
     </button>
   );
@@ -530,13 +531,52 @@ function WalletOption({
 function WalletOptions() {
   const { connectors, connect } = useConnect();
 
-  return connectors.map((connector) => (
-    <WalletOption
-      key={connector.uid}
-      connector={connector}
-      onClick={() => connect({ connector })}
-    />
-  ));
+  // return connectors.map((connector) => (
+  //   <WalletOption
+  //     key={connector.uid}
+  //     connector={connector}
+  //     onClick={() => connect({ connector })}
+  //   />
+  // ));
+
+  const injectedConnector = connectors.find((connector) => connector.name === "Injected");
+  const popularConnectors = connectors.filter((connector) => connector.name === "MetaMask" || connector.name === "Coinbase Wallet" || connector.name === "WalletConnect" || connector.name === "Rainbow");
+  const otherConnectors = connectors.filter((connector) => !popularConnectors.includes(connector) && connector.name !== "Injected");
+
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
+        {injectedConnector && (
+          <WalletOption
+            key={injectedConnector.uid}
+            connector={injectedConnector}
+            onClick={() => connect({ connector: injectedConnector })}
+          />
+        )}
+      </div>
+      <div className="flex flex-col gap-4">
+        <h2>Popular</h2>
+        {popularConnectors.map((connector) => (
+          <WalletOption
+            key={connector.uid}
+            connector={connector}
+            onClick={() => connect({ connector })}
+          />
+        ))}
+      </div>
+      <div className="flex flex-col gap-4">
+        <h2>Other</h2>
+        {otherConnectors.map((connector) => (
+          <WalletOption
+            key={connector.uid}
+            connector={connector}
+            onClick={() => connect({ connector })}
+          />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function Account() {
@@ -544,15 +584,66 @@ function Account() {
   const { disconnect } = useDisconnect();
   const { data: ensName } = useEnsName({ address });
   const { data: ensAvatar } = useEnsAvatar({ name: ensName! });
+  const [open, setOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  // copy the address to the clipboard
+  function copyAddress() {
+    if (address) {
+      navigator.clipboard.writeText(address ? address : "");
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 1000);
+    }
+  }
 
   return (
-    <div>
-      {ensAvatar && (
-        <Image alt="ENS Avatar" src={ensAvatar} width={32} height={32} />
-      )}
-      {address && <div>{ensName ? `${ensName} (${address})` : address}</div>}
-      <button onClick={() => disconnect()}>Disconnect</button>
-    </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          className="border-2 border-primary rounded-xl font-bold text-md hover:scale-105 transition-transform"
+          variant="outline"
+        >
+          {truncateAddress(address)}
+          <ChevronDown />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="flex flex-col sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Wallet</DialogTitle>
+        </DialogHeader>
+        <DialogDescription className="flex flex-col gap-2 text-primary text-center font-bold text-lg items-center">
+          {truncateAddress(address, 4)}
+        </DialogDescription>
+        <div className="grid grid-cols-2 gap-4">
+          <Button
+            onClick={copyAddress}
+            className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+          >
+            {isCopied ? (
+              <>
+                <Check className="h-4 w-4" />
+                Copied
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4" />
+                Copy
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={() => disconnect()}
+            variant="outline"
+            className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+          >
+            <LogOut />
+            Disconnect
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -578,69 +669,69 @@ function ConnectComponent() {
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-row gap-8">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 w-1/3">
             <WalletOptions />
           </div>
-          <div className="flex flex-col gap-4">
-            <h2 className="font-bold">What is a Wallet?</h2>
-            <div className="flex flex-row gap-4 items-center">
-              <Image
-                src="/rainbowkit-1.svg"
-                alt="icon-1"
-                width={50}
-                height={50}
-              />
-              <div className="flex flex-col gap-2">
-                <h3 className="text-sm font-bold">
-                  A Home for your Digital Assets
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Wallets are used to send, receive, store, and display digital
-                  assets like Polkadot and NFTs.
-                </p>
+          <div className="flex flex-col gap-8 border-l-2 pl-8">
+            <div className="flex flex-col gap-8">
+              <h2 className="font-bold">What is a Wallet?</h2>
+              <div className="flex flex-row gap-4 items-center">
+                <Image
+                  src="/rainbowkit-1.svg"
+                  alt="icon-1"
+                  width={50}
+                  height={50}
+                />
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-sm font-bold">
+                    A Home for your Digital Assets
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Wallets are used to send, receive, store, and display digital
+                    assets like Polkadot and NFTs.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-row gap-4 items-center">
+                <Image
+                  src="/rainbowkit-2.svg"
+                  alt="icon-2"
+                  width={50}
+                  height={50}
+                />
+                <div className="flex flex-col gap-2">
+                  <h3 className="font-bold">A new way to Log In</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Instead of creating new accounts and passwords on every
+                    website, just connect your wallet.
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="flex flex-row gap-4 items-center">
-              <Image
-                src="/rainbowkit-2.svg"
-                alt="icon-2"
-                width={50}
-                height={50}
-              />
-              <div className="flex flex-col gap-2">
-                <h3 className="font-bold">A new way to Log In</h3>
-                <p className="text-sm text-muted-foreground">
-                  Instead of creating new accounts and passwords on every
-                  website, just connect your wallet.
-                </p>
-              </div>
+            <div className="flex flex-row gap-4">
+              <Button variant="secondary" asChild>
+                <a href="https://intern.xyz" target="_blank" rel="noopener noreferrer">Find a Wallet App <ExternalLink className="h-4 w-4" /></a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="https://buildui.org" target="_blank" rel="noopener noreferrer">Learn more <ExternalLink className="h-4 w-4" /></a>
+              </Button>
             </div>
           </div>
         </div>
         <DialogFooter>
-          <div className="flex flex-row gap-2 mt-4 justify-between w-full items-center">
-            <a
-              href="https://learn.rainbow.me/understanding-web3?utm_source=rainbowkit&utm_campaign=learnmore"
-              className="text-md font-bold"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learn more
-            </a>
-          </div>
-        </DialogFooter>
-        <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
           Powered by{" "}
           <a
-            href="https://github.com/gmgn-app/sigpass"
+            href="https://buildui.org"
             className="inline-flex items-center gap-1 font-bold underline underline-offset-4"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Sigpass
+            BuildUI
             <ExternalLink className="h-4 w-4" />
           </a>
         </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
