@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import '@rainbow-me/rainbowkit/styles.css';
-import { Providers } from '@/app/providers';
+import "@rainbow-me/rainbowkit/styles.css";
+import { Providers } from "@/app/providers";
 import { Toaster } from "@/components/ui/toaster";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar"
-
+// import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+// import { AppSidebar } from "@/components/app-sidebar";
+import Header from "@/components/header";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -20,33 +20,33 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'EthUI',
-  description: 'bootstrap your dapp with EthUI',
-  metadataBase: new URL('https://ethui.buildstation.org'),
+  title: "EthUI",
+  description: "bootstrap your dapp with EthUI",
+  metadataBase: new URL("https://ethui.buildstation.org"),
   openGraph: {
-    title: 'EthUI',
-    description: 'bootstrap your dapp with EthUI',
-    url: 'https://ethui.buildstation.org',
-    siteName: 'EthUI',
+    title: "EthUI",
+    description: "bootstrap your dapp with EthUI",
+    url: "https://ethui.buildstation.org",
+    siteName: "EthUI",
     images: [
       {
-        url: '/buildui-tbn.png',
+        url: "/buildui-tbn.png",
         width: 1200,
         height: 630,
-        alt: 'og-image',
+        alt: "og-image",
       },
     ],
-    locale: 'en_US',
-    type: 'website',
+    locale: "en_US",
+    type: "website",
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'EthUI',
-    description: 'bootstrap your dapp with EthUI',
-    creator: '@buildstationorg',
-    images: ['/buildui-tbn.png'],
+    card: "summary_large_image",
+    title: "EthUI",
+    description: "bootstrap your dapp with EthUI",
+    creator: "@buildstationorg",
+    images: ["/buildui-tbn.png"],
   },
-}
+};
 
 export default function RootLayout({
   children,
@@ -59,14 +59,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <SidebarProvider>
-            <AppSidebar />
-            <main className="p-4 md:p-12">
-              <SidebarTrigger />
-              {children}
-            </main>
-            <Toaster />
-          </SidebarProvider>
+          <main>
+            <Header />
+            {children}
+          </main>
+          <Toaster />
         </Providers>
       </body>
     </html>

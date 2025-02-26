@@ -1,14 +1,35 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import '@rainbow-me/rainbowkit/styles.css';
+import "@rainbow-me/rainbowkit/styles.css";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
-import { Copy, Check, KeyRound, Ban, ExternalLink, LogOut, ChevronDown, X } from 'lucide-react';
-import { Address } from 'viem';
-import { createSigpassWallet, getSigpassWallet, checkSigpassWallet, checkBrowserWebAuthnSupport } from "@/lib/sigpass";
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount } from 'wagmi';
+import {
+  Copy,
+  Check,
+  KeyRound,
+  Ban,
+  ExternalLink,
+  LogOut,
+  X,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
+import { Address } from "viem";
+import {
+  createSigpassWallet,
+  getSigpassWallet,
+  checkSigpassWallet,
+  checkBrowserWebAuthnSupport,
+} from "@/lib/sigpass";
+import {
+  useAccount,
+  Connector,
+  useConnect,
+  useDisconnect,
+  useEnsAvatar,
+  useEnsName,
+} from "wagmi";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +38,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerClose,
@@ -27,22 +48,57 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
-import Image from 'next/image';
-import { useAtom } from 'jotai';
-import { atomWithStorage, RESET } from 'jotai/utils';
-
+} from "@/components/ui/drawer";
+import Image from "next/image";
+import { useAtom, useAtomValue } from "jotai";
+import { atomWithStorage, RESET } from "jotai/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // Set the string key and the initial value
-export const addressAtom = atomWithStorage<Address | undefined>('SIGPASS_ADDRESS', undefined)
-
-
+export const addressAtom = atomWithStorage<Address | undefined>(
+  "SIGPASS_ADDRESS",
+  undefined
+);
 
 export default function BuildKit() {
+  const address = useAtomValue(addressAtom);
+  const account = useAccount();
+
+  // If wallet exists or address is set, show CreateComponent directly
+  if (address) {
+    return <CreateComponent />;
+  }
+
+  if (account.isConnected) {
+    return <ConnectComponent />;
+  }
+
+  // Otherwise show the popover with both options
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
+          Connect
+          <ChevronDown />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="flex flex-col gap-2 w-48" align="end">
+        <CreateComponent />
+        <ConnectComponent />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function CreateComponent() {
   const [wallet, setWallet] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [webAuthnSupport, setWebAuthnSupport] = useState<boolean>(false);
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const account = useAccount();
   const [address, setAddress] = useAtom(addressAtom);
   const [isCopied, setIsCopied] = useState(false);
@@ -68,7 +124,7 @@ export default function BuildKit() {
     if (account) {
       setAddress(account.address);
     } else {
-      console.error('Issue getting wallet');
+      console.error("Issue getting wallet");
     }
   }
 
@@ -104,88 +160,127 @@ export default function BuildKit() {
     setAddress(RESET);
   }
 
-
   if (isDesktop) {
     return (
       <div className="flex flex-row gap-2 items-center">
         {!wallet && !account.isConnected && !address ? (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="rounded-xl font-bold text-md hover:scale-105 transition-transform">Create Wallet</Button>
+              <Button
+                variant="outline"
+                className="rounded-xl font-bold text-md hover:scale-105 transition-transform w-full"
+              >
+                Create Wallet
+              </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Create Wallet</DialogTitle>
                 <DialogDescription>
-                  Instantly get a wallet with <a href="https://www.yubico.com/resources/glossary/what-is-a-passkey/" className="inline-flex items-center gap-1 font-bold underline underline-offset-2" target="_blank" rel="noopener noreferrer">Passkey<ExternalLink className="h-4 w-4" /></a>
+                  Instantly get a wallet with{" "}
+                  <a
+                    href="https://www.yubico.com/resources/glossary/what-is-a-passkey/"
+                    className="inline-flex items-center gap-1 font-bold underline underline-offset-2"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Passkey
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
                 </DialogDescription>
               </DialogHeader>
               <div className="flex flex-row gap-8">
                 <div className="flex flex-col gap-4">
                   <h2 className="font-bold">What is a Wallet?</h2>
                   <div className="flex flex-row gap-4 items-center">
-                    <Image 
-                      src="/rainbowkit-1.svg" 
-                      alt="icon-1" 
+                    <Image
+                      src="/rainbowkit-1.svg"
+                      alt="icon-1"
                       width={50}
                       height={50}
                     />
                     <div className="flex flex-col gap-2">
-                      <h3 className="text-sm font-bold">A Home for your Digital Assets</h3>
-                      <p className="text-sm text-muted-foreground">Wallets are used to send, receive, store, and display digital assets like Polkadot and NFTs.</p>
+                      <h3 className="text-sm font-bold">
+                        A Home for your Digital Assets
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Wallets are used to send, receive, store, and display
+                        digital assets like Polkadot and NFTs.
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-row gap-4 items-center">
-                    <Image 
-                      src="/rainbowkit-2.svg" 
-                      alt="icon-2" 
+                    <Image
+                      src="/rainbowkit-2.svg"
+                      alt="icon-2"
                       width={50}
                       height={50}
                     />
                     <div className="flex flex-col gap-2">
                       <h3 className="font-bold">A new way to Log In</h3>
-                      <p className="text-sm text-muted-foreground">Instead of creating new accounts and passwords on every website, just connect your wallet.</p>
+                      <p className="text-sm text-muted-foreground">
+                        Instead of creating new accounts and passwords on every
+                        website, just connect your wallet.
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
               <DialogFooter>
                 <div className="flex flex-row gap-2 mt-4 justify-between w-full items-center">
-                  <a href="https://learn.rainbow.me/understanding-web3?utm_source=rainbowkit&utm_campaign=learnmore" className="text-md font-bold" target="_blank" rel="noopener noreferrer">Learn more</a> 
-                  {
-                  webAuthnSupport ? (
-                    <Button 
-                      className="rounded-xl font-bold text-md hover:scale-105 transition-transform" 
+                  <a
+                    href="https://learn.rainbow.me/understanding-web3?utm_source=rainbowkit&utm_campaign=learnmore"
+                    className="text-md font-bold"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Learn more
+                  </a>
+                  {webAuthnSupport ? (
+                    <Button
+                      className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
                       onClick={createWallet} // add a name to the wallet, can be your dapp name or user input
                     >
                       <KeyRound />
                       Create
                     </Button>
                   ) : (
-                    <Button disabled className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
+                    <Button
+                      disabled
+                      className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+                    >
                       <Ban />
                       Unsupported Browser
                     </Button>
-                  )
-                }
+                  )}
                 </div>
               </DialogFooter>
               <div className="text-sm text-muted-foreground">
-                Powered by <a href="https://github.com/gmgn-app/sigpass" className="inline-flex items-center gap-1 font-bold underline underline-offset-4"  target="_blank" rel="noopener noreferrer">Sigpass<ExternalLink className="h-4 w-4" /></a>
+                Powered by{" "}
+                <a
+                  href="https://github.com/gmgn-app/sigpass"
+                  className="inline-flex items-center gap-1 font-bold underline underline-offset-4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Sigpass
+                  <ExternalLink className="h-4 w-4" />
+                </a>
               </div>
             </DialogContent>
           </Dialog>
         ) : wallet && !account.isConnected && address === undefined ? (
-          <Button 
-            className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+          <Button
+            variant="outline"
+            className="rounded-xl font-bold text-md hover:scale-105 transition-transform w-full"
             onClick={getWallet}
           >
             Get Wallet
           </Button>
-        ) : wallet && !account.isConnected && address ? 
+        ) : wallet && !account.isConnected && address ? (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button 
+              <Button
                 className="border-2 border-primary rounded-xl font-bold text-md hover:scale-105 transition-transform"
                 variant="outline"
               >
@@ -201,7 +296,10 @@ export default function BuildKit() {
                 {truncateAddress(address, 4)}
               </DialogDescription>
               <div className="grid grid-cols-2 gap-4">
-                <Button onClick={copyAddress} className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
+                <Button
+                  onClick={copyAddress}
+                  className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+                >
                   {isCopied ? (
                     <>
                       <Check className="h-4 w-4" />
@@ -214,92 +312,131 @@ export default function BuildKit() {
                     </>
                   )}
                 </Button>
-                <Button onClick={disconnect} variant="outline" className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
+                <Button
+                  onClick={disconnect}
+                  variant="outline"
+                  className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+                >
                   <LogOut />
                   Disconnect
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
-         : null}
-        {
-          !address ? <ConnectButton /> : null
-        }
+        ) : null}
       </div>
-    )
+    );
   }
- 
+
   return (
     <div className="flex flex-row gap-2 items-center">
-      {(!wallet && !account.isConnected && !address) ? (
+      {!wallet && !account.isConnected && !address ? (
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerTrigger asChild>
-            <Button className="rounded-xl font-bold text-md hover:scale-105 transition-transform">Create Wallet</Button>
+            <Button className="rounded-xl font-bold text-md hover:scale-105 transition-transform w-full">
+              Create Wallet
+            </Button>
           </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader className="text-left">
               <DrawerTitle>Create Wallet</DrawerTitle>
               <DrawerDescription>
-                Instantly get a wallet with <a href="https://www.yubico.com/resources/glossary/what-is-a-passkey/" className="inline-flex items-center gap-1 font-bold underline underline-offset-2" target="_blank" rel="noopener noreferrer">Passkey<ExternalLink className="h-4 w-4" /></a>
+                Instantly get a wallet with{" "}
+                <a
+                  href="https://www.yubico.com/resources/glossary/what-is-a-passkey/"
+                  className="inline-flex items-center gap-1 font-bold underline underline-offset-2"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Passkey
+                  <ExternalLink className="h-4 w-4" />
+                </a>
               </DrawerDescription>
             </DrawerHeader>
             <div className="p-4">
               <div className="flex flex-col gap-4">
                 <h2 className="font-bold">What is a Wallet?</h2>
                 <div className="flex flex-row gap-4 items-center">
-                  <Image 
-                    src="/rainbowkit-1.svg" 
-                    alt="icon-1" 
+                  <Image
+                    src="/rainbowkit-1.svg"
+                    alt="icon-1"
                     width={50}
                     height={50}
                   />
                   <div className="flex flex-col gap-2">
-                    <h3 className="text-sm font-bold">A Home for your Digital Assets</h3>
-                    <p className="text-sm text-muted-foreground">Wallets are used to send, receive, store, and display digital assets like Polkadot and NFTs.</p>
+                    <h3 className="text-sm font-bold">
+                      A Home for your Digital Assets
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Wallets are used to send, receive, store, and display
+                      digital assets like Polkadot and NFTs.
+                    </p>
                   </div>
                 </div>
                 <div className="flex flex-row gap-4 items-center">
-                  <Image 
-                    src="/rainbowkit-2.svg" 
-                    alt="icon-2" 
+                  <Image
+                    src="/rainbowkit-2.svg"
+                    alt="icon-2"
                     width={50}
                     height={50}
                   />
                   <div className="flex flex-col gap-2">
                     <h3 className="font-bold">A new way to Log In</h3>
-                    <p className="text-sm text-muted-foreground">Instead of creating new accounts and passwords on every website, just connect your wallet.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Instead of creating new accounts and passwords on every
+                      website, just connect your wallet.
+                    </p>
                   </div>
                 </div>
-                <a href="https://learn.rainbow.me/understanding-web3?utm_source=rainbowkit&utm_campaign=learnmore" className="text-md font-bold text-center" target="_blank" rel="noopener noreferrer">Learn more</a> 
+                <a
+                  href="https://learn.rainbow.me/understanding-web3?utm_source=rainbowkit&utm_campaign=learnmore"
+                  className="text-md font-bold text-center"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Learn more
+                </a>
               </div>
             </div>
             <DrawerFooter>
               {webAuthnSupport ? (
-                  <Button 
-                    className="rounded-xl font-bold text-md hover:scale-105 transition-transform" 
-                    onClick={createWallet}
-                  >
-                    <KeyRound />
-                    Create
-                  </Button>
-                ) : (
-                  <Button disabled className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
-                    <Ban />
-                    Unsupported Browser
-                  </Button>
-                )}
+                <Button
+                  className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+                  onClick={createWallet}
+                >
+                  <KeyRound />
+                  Create
+                </Button>
+              ) : (
+                <Button
+                  disabled
+                  className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+                >
+                  <Ban />
+                  Unsupported Browser
+                </Button>
+              )}
               <DrawerClose asChild>
                 <Button variant="outline">Close</Button>
               </DrawerClose>
               <div className="text-sm text-muted-foreground">
-                Powered by <a href="https://github.com/gmgn-app/sigpass" className="inline-flex items-center gap-1 font-bold underline underline-offset-4" target="_blank" rel="noopener noreferrer">Sigpass<ExternalLink className="h-4 w-4" /></a>
+                Powered by{" "}
+                <a
+                  href="https://github.com/gmgn-app/sigpass"
+                  className="inline-flex items-center gap-1 font-bold underline underline-offset-4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Sigpass
+                  <ExternalLink className="h-4 w-4" />
+                </a>
               </div>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
       ) : wallet && !account.isConnected && address === undefined ? (
-        <Button 
-          className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+        <Button
+          className="rounded-xl font-bold text-md hover:scale-105 transition-transform w-full"
           onClick={getWallet}
         >
           Get Wallet
@@ -307,7 +444,7 @@ export default function BuildKit() {
       ) : wallet && !account.isConnected && address ? (
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerTrigger asChild>
-            <Button 
+            <Button
               className="border-2 border-primary rounded-xl font-bold text-md hover:scale-105 transition-transform"
               variant="outline"
             >
@@ -331,7 +468,10 @@ export default function BuildKit() {
             </DrawerHeader>
             <div className="flex flex-col items-center gap-2">
               <div className="grid grid-cols-2 gap-4">
-                <Button onClick={copyAddress} className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
+                <Button
+                  onClick={copyAddress}
+                  className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+                >
                   {isCopied ? (
                     <>
                       <Check className="h-4 w-4" />
@@ -344,7 +484,11 @@ export default function BuildKit() {
                     </>
                   )}
                 </Button>
-                <Button onClick={disconnect} variant="outline" className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
+                <Button
+                  onClick={disconnect}
+                  variant="outline"
+                  className="rounded-xl font-bold text-md hover:scale-105 transition-transform"
+                >
                   <LogOut />
                   Disconnect
                 </Button>
@@ -353,8 +497,151 @@ export default function BuildKit() {
           </DrawerContent>
         </Drawer>
       ) : null}
-      {!address ? <ConnectButton /> : null}
     </div>
-  )
+  );
 }
 
+// CONNECT WALLET COMPONENT
+
+// WalletOption component
+function WalletOption({
+  connector,
+  onClick,
+}: {
+  connector: Connector;
+  onClick: () => void;
+}) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const provider = await connector.getProvider();
+      setReady(!!provider);
+    })();
+  }, [connector]);
+
+  return (
+    <button disabled={!ready} onClick={onClick}>
+      {connector.name}
+    </button>
+  );
+}
+
+function WalletOptions() {
+  const { connectors, connect } = useConnect();
+
+  return connectors.map((connector) => (
+    <WalletOption
+      key={connector.uid}
+      connector={connector}
+      onClick={() => connect({ connector })}
+    />
+  ));
+}
+
+function Account() {
+  const { address } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { data: ensName } = useEnsName({ address });
+  const { data: ensAvatar } = useEnsAvatar({ name: ensName! });
+
+  return (
+    <div>
+      {ensAvatar && (
+        <Image alt="ENS Avatar" src={ensAvatar} width={32} height={32} />
+      )}
+      {address && <div>{ensName ? `${ensName} (${address})` : address}</div>}
+      <button onClick={() => disconnect()}>Disconnect</button>
+    </div>
+  );
+}
+
+function ConnectComponent() {
+  const { isConnected } = useAccount();
+  const [open, setOpen] = useState(false);
+
+  if (isConnected) return <Account />;
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
+          Connect Wallet
+          <ChevronRight />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[780px]">
+        <DialogHeader>
+          <DialogTitle>Connect Wallet</DialogTitle>
+          <DialogDescription>
+            Select a wallet to connect to the app
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-row gap-8">
+          <div className="flex flex-col gap-4">
+            <WalletOptions />
+          </div>
+          <div className="flex flex-col gap-4">
+            <h2 className="font-bold">What is a Wallet?</h2>
+            <div className="flex flex-row gap-4 items-center">
+              <Image
+                src="/rainbowkit-1.svg"
+                alt="icon-1"
+                width={50}
+                height={50}
+              />
+              <div className="flex flex-col gap-2">
+                <h3 className="text-sm font-bold">
+                  A Home for your Digital Assets
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Wallets are used to send, receive, store, and display digital
+                  assets like Polkadot and NFTs.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-row gap-4 items-center">
+              <Image
+                src="/rainbowkit-2.svg"
+                alt="icon-2"
+                width={50}
+                height={50}
+              />
+              <div className="flex flex-col gap-2">
+                <h3 className="font-bold">A new way to Log In</h3>
+                <p className="text-sm text-muted-foreground">
+                  Instead of creating new accounts and passwords on every
+                  website, just connect your wallet.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <div className="flex flex-row gap-2 mt-4 justify-between w-full items-center">
+            <a
+              href="https://learn.rainbow.me/understanding-web3?utm_source=rainbowkit&utm_campaign=learnmore"
+              className="text-md font-bold"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Learn more
+            </a>
+          </div>
+        </DialogFooter>
+        <div className="text-sm text-muted-foreground">
+          Powered by{" "}
+          <a
+            href="https://github.com/gmgn-app/sigpass"
+            className="inline-flex items-center gap-1 font-bold underline underline-offset-4"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Sigpass
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
