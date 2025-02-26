@@ -530,19 +530,9 @@ function WalletOption({
 
 function WalletOptions() {
   const { connectors, connect } = useConnect();
-
-  // return connectors.map((connector) => (
-  //   <WalletOption
-  //     key={connector.uid}
-  //     connector={connector}
-  //     onClick={() => connect({ connector })}
-  //   />
-  // ));
-
   const injectedConnector = connectors.find((connector) => connector.name === "Injected");
   const popularConnectors = connectors.filter((connector) => connector.name === "MetaMask" || connector.name === "Coinbase Wallet" || connector.name === "WalletConnect" || connector.name === "Rainbow");
   const otherConnectors = connectors.filter((connector) => !popularConnectors.includes(connector) && connector.name !== "Injected");
-
 
   return (
     <div className="flex flex-col gap-4">
@@ -582,8 +572,6 @@ function WalletOptions() {
 function Account() {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
-  const { data: ensName } = useEnsName({ address });
-  const { data: ensAvatar } = useEnsAvatar({ name: ensName! });
   const [open, setOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -658,7 +646,6 @@ function ConnectComponent() {
       <DialogTrigger asChild>
         <Button className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
           Connect Wallet
-          <ChevronRight />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[780px]">

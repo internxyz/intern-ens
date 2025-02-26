@@ -69,6 +69,7 @@ const config = createConfig({
     [arbitrumSepolia.id]: http(),
     [kairos.id]: http(),
   },
+  ssr: true,
 })
 
 const queryClient = new QueryClient();
