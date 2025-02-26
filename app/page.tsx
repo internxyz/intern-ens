@@ -6,31 +6,6 @@ export default function Home() {
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <div className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          src="/bs-logo.svg"
-          alt="Buildstation logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <p>Get started by checking out the demos</p>
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left">
-          <li className="mb-2">
-            <Link href="/connect-wallet">Connect wallet</Link>
-          </li>
-          <li className="mb-2">
-            <Link href="/send-transaction">Send transaction</Link>
-          </li>
-          <li className="mb-2">
-            <Link href="/portfolio-sidebar">Portfolio sidebar</Link>
-          </li>
-          <li className="mb-2">
-            <Link href="/swap">Swap</Link>
-          </li>
-          <li className="mb-2">
-            <Link href="/mint-redeem-lst-bifrost">Mint and Redeem LST</Link>
-          </li>
-        </ol>
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
             className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"

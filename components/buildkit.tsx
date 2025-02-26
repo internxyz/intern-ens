@@ -12,7 +12,6 @@ import {
   LogOut,
   X,
   ChevronDown,
-  ChevronRight,
   WalletMinimal
 } from "lucide-react";
 import { Address } from "viem";
@@ -27,8 +26,6 @@ import {
   Connector,
   useConnect,
   useDisconnect,
-  useEnsAvatar,
-  useEnsName,
 } from "wagmi";
 import {
   Dialog,
@@ -82,7 +79,7 @@ export default function BuildKit() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button className="rounded-xl font-bold text-md hover:scale-105 transition-transform">
+        <Button className="rounded-xl font-bold text-md hover:scale-105 transition-transform w-fit">
           Connect
           <ChevronDown />
         </Button>
