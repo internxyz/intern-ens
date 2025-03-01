@@ -1,4 +1,4 @@
-import BuildKit from "@/components/buildkit";
+import SigpassKit from "@/components/sigpasskit";
 import Image from "next/image";
 
 export default function Header() {
@@ -15,7 +15,7 @@ export default function Header() {
         <p className="text-2xl font-bold">/ EthUI</p>
       </div>
       <div className="place-self-end">
-        <BuildKit />
+        <SigpassKit />
       </div>
     </header>
   )

@@ -1,6 +1,6 @@
 "use client";
 
-import SigpassKit from "@/components/sigpasskit";
+import SigpassKit from "@/components/sigpasskit-alt";
 import Navbar from "@/components/navbar";
 import SwapComponent from "@/components/swap-component";
 

@@ -1,6 +1,6 @@
 "use client";
 import SendTransaction from "@/components/send-transaction";
-import SigpassKit from "@/components/sigpasskit";
+import SigpassKit from "@/components/sigpasskit-alt";
 import Navbar from "@/components/navbar";
 
 export default function SendTransactionPage() {
