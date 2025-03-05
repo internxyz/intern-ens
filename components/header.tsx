@@ -1,4 +1,4 @@
-import SigpassKit from "@/components/sigpasskit";
+import SigpassKit from "@/components/sigpasskit-alt";
 import Image from "next/image";
 
 export default function Header() {

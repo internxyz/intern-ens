@@ -1,15 +1,15 @@
 'use client';
 
 import * as React from 'react';
-// import {
-//   RainbowKitProvider,
-//   getDefaultWallets,
-//   getDefaultConfig,
-// } from '@rainbow-me/rainbowkit';
-// import {
-//   trustWallet,
-//   ledgerWallet,
-// } from '@rainbow-me/rainbowkit/wallets';
+import {
+  RainbowKitProvider,
+  getDefaultWallets,
+  getDefaultConfig,
+} from '@rainbow-me/rainbowkit';
+import {
+  trustWallet,
+  ledgerWallet,
+} from '@rainbow-me/rainbowkit/wallets';
 import {
   // mainnet,
   sepolia,
@@ -18,11 +18,11 @@ import {
   // arbitrum,
   arbitrumSepolia,
   // kaia,
-  kairos
+  kairos,
 } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider, http, createConfig } from 'wagmi';
-import { injected, metaMask, coinbaseWallet, safe, walletConnect } from 'wagmi/connectors'
+// import { injected, metaMask, coinbaseWallet, safe, walletConnect } from 'wagmi/connectors'
 import { Provider as JotaiProvider } from 'jotai';
 // import according to docs
 
@@ -52,16 +52,43 @@ export const localConfig = createConfig({
 
 // initialize and destructure wallets object
 
-const projectId = '4677fc7e8805e5823c3ea097ee4f08a8'
+// const projectId = '4677fc7e8805e5823c3ea097ee4f08a8'
 
-const config = createConfig({
-  chains: [sepolia, baseSepolia, arbitrumSepolia, kairos],
-  connectors: [
-    injected(),
-    coinbaseWallet({ appName: 'EthUI' }),
-    walletConnect({ projectId }),
-    metaMask(),
-    safe(),
+// const config = createConfig({
+//   chains: [sepolia, baseSepolia, arbitrumSepolia, kairos],
+//   connectors: [
+//     injected(),
+//     coinbaseWallet({ appName: 'EthUI' }),
+//     walletConnect({ projectId }),
+//     metaMask(),
+//     safe(),
+//   ],
+//   transports: {
+//     [sepolia.id]: http(),
+//     [baseSepolia.id]: http(),
+//     [arbitrumSepolia.id]: http(),
+//     [kairos.id]: http(),
+//   },
+//   ssr: true,
+// })
+
+const { wallets } = getDefaultWallets();
+
+const config = getDefaultConfig({
+  appName: "EthUI", // Name your app
+  projectId: "4677fc7e8805e5823c3ea097ee4f08a8", // Enter your WalletConnect Project ID here
+  wallets: [
+    ...wallets,
+    {
+      groupName: 'Other',
+      wallets: [trustWallet, ledgerWallet],
+    },
+  ],
+  chains: [
+    sepolia,
+    baseSepolia,
+    arbitrumSepolia,
+    kairos,
   ],
   transports: {
     [sepolia.id]: http(),
@@ -69,8 +96,8 @@ const config = createConfig({
     [arbitrumSepolia.id]: http(),
     [kairos.id]: http(),
   },
-  ssr: true,
-})
+  ssr: true, // Because it is Nextjs's App router, you need to declare ssr as true
+});
 
 const queryClient = new QueryClient();
 
@@ -79,7 +106,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <JotaiProvider>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
-          {children}
+          <RainbowKitProvider>
+            {children}
+          </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
     </JotaiProvider>
