@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useBalance, useAccount, useChainId } from "wagmi";
+import { useBalance, useAccount, useChainId, useReadContracts, useSimulateContract } from "wagmi";
 import { formatUnits, parseUnits } from "viem";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,7 +36,17 @@ import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 // import { TransactionStatus } from "@/components/transaction-status";
 
-interface Token {
+// swap
+import { computePoolAddress } from "@/lib/buildswap/v3-sdk/utils/computePoolAddress";
+import { FeeAmount } from "@/lib/buildswap/v3-sdk/constants";
+import { Token } from "@/lib/buildswap/sdk-core/entities/token";
+import { WETH9 } from "@/lib/buildswap/sdk-core/entities/weth9";
+import IUniswapV3Pool from "@/lib/buildswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json";
+import QuoterV2 from '@/lib/buildswap/v3-periphery/artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json';
+import IERC20Metadata from '@/lib/buildswap/v3-periphery/artifacts/contracts/interfaces/IERC20Metadata.sol/IERC20Metadata.json';
+
+
+interface TokenListItem {
   name: string;
   symbol: string;
   icon: string;
@@ -49,19 +59,61 @@ enum SwapTokenState {
   SWAPPED = "swapped",
 }
 
+const QUOTER_CONTRACT_ADDRESS = "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3";
+
 export default function CryptoSwap() {
   const [sellAmount, setSellAmount] = useState<string>("");
   const [buyAmount, setBuyAmount] = useState<string>("");
   const chainId = useChainId();
-  
-  const [filteredTokenSellList, setFilteredTokenSellList] = useState<Token[]>(tokenList);
-  const [filteredTokenBuyList, setFilteredTokenBuyList] = useState<Token[]>(tokenList);
-  const [selectedSellToken, setSelectedSellToken] = useState<Token | undefined>(undefined);
-  const [selectedBuyToken, setSelectedBuyToken] = useState<Token | undefined>(undefined);
+  const account = useAccount();
+  const [filteredTokenSellList, setFilteredTokenSellList] = useState<TokenListItem[]>(tokenList);
+  const [filteredTokenBuyList, setFilteredTokenBuyList] = useState<TokenListItem[]>(tokenList);
+  const [selectedSellToken, setSelectedSellToken] = useState<TokenListItem | undefined>(undefined);
+  const [selectedBuyToken, setSelectedBuyToken] = useState<TokenListItem | undefined>(undefined);
 
   const [swapOrderState, setSwapOrderState] = useState<boolean>(false);
 
   const [swapTokenState, setSwapTokenState] = useState<SwapTokenState>(SwapTokenState.QUOTE);
+
+  // provide quote
+  const { data: simulatedQuoteData, error: simulatedQuoteError } = useSimulateContract({
+    address: QUOTER_CONTRACT_ADDRESS as `0x${string}`,
+    abi: QuoterV2.abi,
+    functionName: "quoteExactInputSingle",
+    args: [{
+      tokenIn: convertTokenListItemToTokenAddress(selectedSellToken),
+      tokenOut: convertTokenListItemToTokenAddress(selectedBuyToken),
+      fee: 100, 
+      amountIn: parseUnits(sellAmount, 18),
+      sqrtPriceLimitX96: 0
+    }],
+  });
+
+  const { data: tokenOutData } = useReadContracts({
+    contracts: [
+      {
+        address: convertTokenListItemToTokenAddress(selectedBuyToken) as `0x${string}`,
+        abi: IERC20Metadata.abi,
+        functionName: "name",
+      },
+      {
+        address: convertTokenListItemToTokenAddress(selectedBuyToken) as `0x${string}`,
+        abi: IERC20Metadata.abi,
+        functionName: "symbol",
+      },
+      {
+        address: convertTokenListItemToTokenAddress(selectedBuyToken) as `0x${string}`,
+        abi: IERC20Metadata.abi,
+        functionName: "decimals",
+      },
+      {
+        address: convertTokenListItemToTokenAddress(selectedBuyToken) as `0x${string}`,
+        abi: IERC20Metadata.abi,
+        functionName: "balanceOf",
+        args: [account.address],
+      },
+    ],
+  });
 
   useEffect(() => {
     const filtered = tokenList.filter(
@@ -78,8 +130,16 @@ export default function CryptoSwap() {
     setSelectedBuyToken(undefined); // Reset buy token when chain changes
   }, [chainId]);
 
-  // get account
-  const account = useAccount();
+
+  useEffect(() => {
+    if (simulatedQuoteData) {
+      console.log(simulatedQuoteData);
+      console.log(formatUnits(simulatedQuoteData.result[0], 6));
+    }
+    if (simulatedQuoteError) {
+      console.log(simulatedQuoteError);
+    }
+  }, [simulatedQuoteData, simulatedQuoteError]);
 
   // get native balance
   const {
@@ -113,7 +173,7 @@ export default function CryptoSwap() {
 
   function refetchSellSide() {
     if (swapOrderState === true) {
-      fetchQuote(selectedSellToken!.address, selectedBuyToken!.address, sellAmount);
+      fetchQuote();
     }
 
     if (swapOrderState === false) {
@@ -149,7 +209,7 @@ export default function CryptoSwap() {
     }
 
     if (swapOrderState === false) {
-      fetchQuote(selectedSellToken!.address, selectedBuyToken!.address, sellAmount);
+      fetchQuote();
     }
   }
 
@@ -162,7 +222,7 @@ export default function CryptoSwap() {
     );
   }
 
-  function handleSelectSellToken(token: Token): void {
+  function handleSelectSellToken(token: TokenListItem): void {
     setSelectedSellToken(token);
     setSellMenuState(false);
     
@@ -176,7 +236,7 @@ export default function CryptoSwap() {
     }
   }
 
-  function handleSelectBuyToken(token: Token): void {
+  function handleSelectBuyToken(token: TokenListItem): void {
     setSelectedBuyToken(token);
     setBuyMenuState(false);
   }
@@ -202,47 +262,20 @@ export default function CryptoSwap() {
     setSwapOrderState(!swapOrderState);
   }
 
-  async function fetchQuote(tokenA: string, tokenB: string, tokenAmountIn: string) {
-    // delay for 0.2 seconds
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    let quoteAmount;
-    switch (tokenA) {
-      case "eip155:84532/0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE":
-        switch (tokenB) {
-          case "eip155:84532/0x0000000000000000000000000000000000000001":
-            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
-            setBuyAmount(formatUnits(quoteAmount, 18));
-            break;
-          case "eip155:84532/0x0000000000000000000000000000000000000002":
-            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
-            setBuyAmount(formatUnits(quoteAmount, 18));
-            break;
-          default:
-            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
-            setBuyAmount(formatUnits(quoteAmount, 18));
-        }
-        break;
-
-      case "eip155:84532/0x0000000000000000000000000000000000000001":
-        switch (tokenB) {
-          case "eip155:84532/0x0000000000000000000000000000000000000002":
-            // quote same amount
-            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(1);
-            setBuyAmount(formatUnits(quoteAmount, 18));
-            break;
-          case "eip155:84532/0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE":
-            // quote random amount opposite of sell token
-            quoteAmount = parseUnits(tokenAmountIn, 18) / BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
-            setBuyAmount(formatUnits(quoteAmount, 18));
-            break;
-          default:
-            quoteAmount = parseUnits(tokenAmountIn, 18) * BigInt(Math.floor(Math.random() * (2700 - 2600 + 1)) + 2600);
-            setBuyAmount(formatUnits(quoteAmount, 18));
-        }
-    }
-    
+  async function fetchQuote() {
+    setBuyAmount(formatUnits(simulatedQuoteData?.result[0] || BigInt(0), 6));
     setSwapTokenState(SwapTokenState.READY);
+  }
+
+  function convertTokenListItemToTokenAddress(token: TokenListItem | undefined): string {
+    if (token === undefined) {
+      return "";
+    }
+    const rawTokenAddress = token.address.split("/")[1];
+    if (rawTokenAddress === "0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE") {
+      return WETH9[chainId].address;
+    }
+    return rawTokenAddress;
   }
 
   return (
@@ -773,7 +806,12 @@ export default function CryptoSwap() {
               ) : (
                 <div className="flex flex-row items-center gap-2">
                   <div className="text-muted-foreground">
-                    0.0000
+                    {
+                      tokenOutData?.[3]?.result ?
+                      formatUnits(tokenOutData[3].result as bigint, tokenOutData[2].result as number)
+                      : "-"
+                    }{" "}
+                    {tokenOutData?.[1]?.result ? tokenOutData[1].result.toString() : "-"}
                   </div>
                 </div>
               )}
@@ -783,14 +821,14 @@ export default function CryptoSwap() {
           {/* Action Button */}
           <div className="flex flex-col gap-2">
             <div className="flex flex-row gap-2 items-center mt-4 w-full h-14">
-              <Button variant="outline" className="w-14 h-14 rounded-xl">
+              <Button onClick={fetchQuote} variant="outline" className="w-14 h-14 rounded-xl">
                 <Quote className="h-8 w-8" />
               </Button>
               {
                 sellAmount !== "" && swapTokenState === SwapTokenState.QUOTE ? (
                   <Button
                     className="w-full rounded-xl h-14 text-lg"
-                    onClick={() => fetchQuote(selectedSellToken!.address, selectedBuyToken!.address, sellAmount)}
+                    onClick={fetchQuote}
                   >
                     Find a quote
                   </Button>
@@ -831,12 +869,24 @@ export default function CryptoSwap() {
 }
 
 // Add type for the token list
-const tokenList: Token[] = [
+const tokenList: TokenListItem[] = [
   {
     name: "Ethereum",
     symbol: "ETH",
     icon: "/logos/eth.svg",
     address: "eip155:84532/0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE",
+  },
+  {
+    name: "Ethereum",
+    symbol: "ETH",
+    icon: "/logos/eth.svg",
+    address: "eip155:11155111/0xeeeEEEeEEeeeEeEeEEEeEeeeeEEEEeEEeEeeeeeE",
+  },
+  {
+    name: "USD Coin",
+    symbol: "USDC",
+    icon: "/logos/usdc.svg",
+    address: "eip155:11155111/0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
   },
   {
     name: "USD Coin",
