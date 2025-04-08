@@ -16,6 +16,13 @@ const Drawer = ({
 )
 Drawer.displayName = "Drawer"
 
+// added this to allow nested drawers
+function DrawerNested({
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.NestedRoot>) {
+  return <DrawerPrimitive.NestedRoot data-slot="drawer-nested" {...props} />
+}
+
 const DrawerTrigger = DrawerPrimitive.Trigger
 
 const DrawerPortal = DrawerPrimitive.Portal
@@ -106,6 +113,7 @@ DrawerDescription.displayName = DrawerPrimitive.Description.displayName
 
 export {
   Drawer,
+  DrawerNested,
   DrawerPortal,
   DrawerOverlay,
   DrawerTrigger,

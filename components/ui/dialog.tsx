@@ -8,6 +8,12 @@ import { cn } from "@/lib/utils"
 
 const Dialog = DialogPrimitive.Root
 
+function DialogNested({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  return <DialogPrimitive.Root data-slot="dialog-nested" {...props} />
+}
+
 const DialogTrigger = DialogPrimitive.Trigger
 
 const DialogPortal = DialogPrimitive.Portal
@@ -110,6 +116,7 @@ DialogDescription.displayName = DialogPrimitive.Description.displayName
 
 export {
   Dialog,
+  DialogNested,
   DialogPortal,
   DialogOverlay,
   DialogClose,
